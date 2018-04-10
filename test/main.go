@@ -28,15 +28,8 @@ func main() {
 		}
 	}()
 
-	n1 := NewWhale(3, 3, sprite.Costume{whale_c0})
-	n1.Alpha = 'x'
-	n1.VX = 1
-	n1.VY = 1
-
-	n2 := NewWhale(70, 3, sprite.Costume{whale_c0})
-	n2.Alpha = 'x'
-	n2.VX = -1
-	n2.VY = 1
+	n1 := NewWhale()
+	n2 := NewWhale()
 
 	allSprites.Sprites = append(allSprites.Sprites, n1)
 	allSprites.Sprites = append(allSprites.Sprites, n2)
@@ -47,8 +40,17 @@ mainloop:
 
 		select {
 		case ev := <-event_queue:
-			if ev.Type == tm.EventKey && ev.Key == tm.KeyEsc {
-				break mainloop
+			if ev.Type == tm.EventKey {
+				if ev.Key == tm.KeyEsc {
+					break mainloop
+				} else if ev.Ch == 'a' {
+					w := NewWhale()
+					allSprites.Sprites = append(allSprites.Sprites, w)
+				} else if ev.Ch == 'z' {
+					if len(allSprites.Sprites) > 0 {
+						allSprites.Sprites = allSprites.Sprites[:len(allSprites.Sprites)-1]
+					}
+				}
 			} else if ev.Type == tm.EventResize {
 				Width = ev.Width
 				Height = ev.Height
@@ -56,7 +58,7 @@ mainloop:
 		default:
 			allSprites.Render()
 			allSprites.Update()
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(50 * time.Millisecond)
 		}
 	}
 

@@ -1,6 +1,11 @@
 package main
 
-import "./sprite"
+import (
+	"math/rand"
+	"time"
+
+	"./sprite"
+)
 
 const whale_c0 = `xxxxxxxxxxxxxxx##xxxxxxxx.xxxxx
 xxxxxxxxx##x##x##xxxxxxx==xxxxx
@@ -17,17 +22,46 @@ type Whale struct {
 	VY int
 }
 
-func NewWhale(x, y int, costume sprite.Costume) *Whale {
+func randPos() (int, int) {
+	offset := 20
+	var x, y int
+	s := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(s)
+	x = r.Intn(Width-2*offset) + offset
+	y = r.Intn(Height-2*offset) + offset
+	return x, y
+}
+
+func randVec() (int, int) {
+	var x, y int
+	s := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(s)
+	n := r.Intn(2)
+	x = n
+	if x == 0 {
+		x = -1
+	}
+
+	n = r.Intn(2)
+	y = n
+	if y == 0 {
+		y = -1
+	}
+	return x, y
+}
+
+func NewWhale() *Whale {
 	s := &Whale{BaseSprite: sprite.BaseSprite{
-		X:              x,
-		Y:              y,
+		Alpha:          'x',
 		Height:         0,
 		Width:          0,
 		Costumes:       []sprite.Costume{},
 		CurrentCostume: 0,
 	},
 	}
-	s.AddCostume(costume)
+	s.X, s.Y = randPos()
+	s.VX, s.VY = randVec()
+	s.AddCostume(sprite.Costume{whale_c0})
 	return s
 }
 
@@ -35,16 +69,16 @@ func (s *Whale) Update() {
 	s.X = s.X + s.VX
 	s.Y = s.Y + s.VY
 
-	if s.X <= 0 {
+	if s.X < 0 {
 		s.VX = 1
 	}
 	if s.X > Width-s.Width {
 		s.VX = -1
 	}
-	if s.Y > Height-s.Height {
+	if s.Y >= Height-s.Height {
 		s.VY = -1
 	}
-	if s.Y < 0 {
+	if s.Y <= 0 {
 		s.VY = 1
 	}
 }
