@@ -23,6 +23,7 @@ type BaseSprite struct {
 	Width          int
 	Costumes       []Costume
 	Alpha          rune
+	Visible        bool
 	CurrentCostume int
 }
 
@@ -43,6 +44,7 @@ func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 		Y:              y,
 		Height:         0,
 		Width:          0,
+		Visible:        true,
 		Costumes:       []Costume{},
 		CurrentCostume: 0,
 	}
@@ -63,10 +65,12 @@ func (s *BaseSprite) AddCostume(costume Costume) {
 }
 
 func (s *BaseSprite) Render() {
-	for y, line := range strings.Split(s.Costumes[s.CurrentCostume].Text, "\n") {
-		for x, ch := range line {
-			if ch != s.Alpha {
-				tm.SetCell(s.X+x, s.Y+y, ch, tm.ColorWhite, tm.ColorBlack)
+	if s.Visible {
+		for y, line := range strings.Split(s.Costumes[s.CurrentCostume].Text, "\n") {
+			for x, ch := range line {
+				if ch != s.Alpha {
+					tm.SetCell(s.X+x, s.Y+y, ch, tm.ColorWhite, tm.ColorBlack)
+				}
 			}
 		}
 	}

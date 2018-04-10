@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"./sprite"
+	sprite "github.com/pdevine/go-asciisprite"
 
 	tm "github.com/nsf/termbox-go"
 )
@@ -13,6 +13,9 @@ var Width int
 var Height int
 
 func main() {
+	// XXX - Wait a bit until the terminal is properly initialized
+	time.Sleep(200 * time.Millisecond)
+
 	err := tm.Init()
 	if err != nil {
 		panic(err)
@@ -31,6 +34,10 @@ func main() {
 	n1 := NewWhale()
 	n2 := NewWhale()
 
+	c := sprite.Costume{"Press 'a' to add whales, 'z' to remove them.  'ESC' to quit."}
+	text := sprite.NewBaseSprite(Width/2-len(c.Text)/2, Height-2, c)
+
+	allSprites.Sprites = append(allSprites.Sprites, text)
 	allSprites.Sprites = append(allSprites.Sprites, n1)
 	allSprites.Sprites = append(allSprites.Sprites, n2)
 
@@ -47,7 +54,7 @@ mainloop:
 					w := NewWhale()
 					allSprites.Sprites = append(allSprites.Sprites, w)
 				} else if ev.Ch == 'z' {
-					if len(allSprites.Sprites) > 0 {
+					if len(allSprites.Sprites) > 1 {
 						allSprites.Sprites = allSprites.Sprites[:len(allSprites.Sprites)-1]
 					}
 				}
@@ -56,8 +63,8 @@ mainloop:
 				Height = ev.Height
 			}
 		default:
-			allSprites.Render()
 			allSprites.Update()
+			allSprites.Render()
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
