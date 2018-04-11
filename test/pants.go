@@ -177,7 +177,7 @@ xxxxxxxxxx..     ,.    .,
 xxxxxxxxxx.,     ,.    .,
 xxxxxxxxxxxx...,,*,,,,,,.`
 
-const c4 = `xxxxxxxx,*,,,,*/*,,,..
+const c3 = `xxxxxxxx,*,,,,*/*,,,..
 xxxxxxx**.    ,,       ,**,..
 xxxxxxx*,.....,,.,***,.*,.,//
 xxxxxxx,         ..., .**,,/*
@@ -255,9 +255,9 @@ func NewPants() *Pants {
 		Timer:   0,
 		TimeOut: 6}
 	s.AddCostume(sprite.Costume{c0})
-	s.AddCostume(sprite.Costume{c1})
+	s.AddCostume(sprite.Costume{c3})
 	s.AddCostume(sprite.Costume{c2})
-	s.AddCostume(sprite.Costume{c4})
+	s.AddCostume(sprite.Costume{c1})
 	s.X = Width/2 - 20
 	return s
 }
@@ -365,7 +365,7 @@ mainloop:
 		select {
 		case ev := <-event_queue:
 			if ev.Type == tm.EventKey {
-				if ev.Key == tm.KeyEsc {
+				if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
 					break mainloop
 				}
 			} else if ev.Type == tm.EventResize {
