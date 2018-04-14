@@ -332,7 +332,7 @@ func (s *Confetti) Update() {
 
 func main() {
 	// XXX - Wait a bit until the terminal is properly initialized
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	err := tm.Init()
 	if err != nil {
