@@ -62,7 +62,7 @@ func NewWhale() *Whale {
 	}
 	s.X, s.Y = randPos()
 	s.VX, s.VY = randVec()
-	s.AddCostume(sprite.Costume{whale_c0})
+	s.AddCostume(sprite.NewCostume(whale_c0, 'x'))
 	return s
 }
 

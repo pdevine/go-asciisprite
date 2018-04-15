@@ -248,16 +248,15 @@ type Confetti struct {
 
 func NewPants() *Pants {
 	s := &Pants{BaseSprite: sprite.BaseSprite{
-		Alpha:          'x',
 		Visible:        true,
 		Y:              2,
 		CurrentCostume: 0},
 		Timer:   0,
 		TimeOut: 6}
-	s.AddCostume(sprite.Costume{c0})
-	s.AddCostume(sprite.Costume{c3})
-	s.AddCostume(sprite.Costume{c2})
-	s.AddCostume(sprite.Costume{c1})
+	s.AddCostume(sprite.NewCostume(c0, 'x'))
+	s.AddCostume(sprite.NewCostume(c3, 'x'))
+	s.AddCostume(sprite.NewCostume(c2, 'x'))
+	s.AddCostume(sprite.NewCostume(c1, 'x'))
 	s.X = Width/2 - 20
 	return s
 }
@@ -278,7 +277,7 @@ func NewPantsText() *PantsText {
 		Alpha:          'x',
 		CurrentCostume: 0},
 		Timer: 0}
-	s.AddCostume(sprite.Costume{pants_c0})
+	s.AddCostume(sprite.NewCostume(pants_c0, 'x'))
 	s.X = Width/2 - s.Width/2
 	s.Y = Height/2 - s.Height/2
 	return s
@@ -294,12 +293,11 @@ func (s *PantsText) Update() {
 
 func NewConfetti() *Confetti {
 	s := &Confetti{BaseSprite: sprite.BaseSprite{
-		Alpha:   'x',
 		Visible: true},
 		Timer:   0,
 		TimeOut: 3}
-	s.AddCostume(sprite.Costume{confetti_c0})
-	s.AddCostume(sprite.Costume{confetti_c1})
+	s.AddCostume(sprite.NewCostume(confetti_c0, 'x'))
+	s.AddCostume(sprite.NewCostume(confetti_c1, 'x'))
 	src := rand.NewSource(time.Now().UnixNano())
 	rnd := rand.New(src)
 	s.X = rnd.Intn(Width)

@@ -34,8 +34,9 @@ func main() {
 	n1 := NewWhale()
 	n2 := NewWhale()
 
-	c := sprite.Costume{"Press 'a' to add whales, 'z' to remove them.  'ESC' to quit."}
-	text := sprite.NewBaseSprite(Width/2-len(c.Text)/2, Height-2, c)
+	txt := "Press 'a' to add whales, 'z' to remove them.  'ESC' to quit."
+	c := sprite.NewCostume(txt, '~')
+	text := sprite.NewBaseSprite(Width/2-len(txt)/2, Height-2, c)
 
 	allSprites.Sprites = append(allSprites.Sprites, text)
 	allSprites.Sprites = append(allSprites.Sprites, n1)

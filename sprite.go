@@ -6,14 +6,51 @@ import (
 	tm "github.com/nsf/termbox-go"
 )
 
+type Block struct {
+	Char rune
+	X    int
+	Y    int
+}
+
+type Costume struct {
+	Blocks []Block
+	Width  int
+	Height int
+}
+
+func NewCostume(t string, alpha rune) Costume {
+	c := Costume{}
+	c.ChangeCostume(t, alpha)
+	return c
+}
+
+func (c *Costume) ChangeCostume(t string, alpha rune) {
+	c.Blocks = []Block{}
+	var width int
+	var height int
+
+	for y, line := range strings.Split(t, "\n") {
+		for x, ch := range line {
+			if ch != alpha {
+				b := Block{
+					Char: ch,
+					X:    x,
+					Y:    y,
+				}
+				c.Blocks = append(c.Blocks, b)
+				width = max(x, width)
+			}
+		}
+		height = y
+	}
+	c.Width = width
+	c.Height = height
+}
+
 type Sprite interface {
 	Update()
 	Render()
 	AddCostume(Costume)
-}
-
-type Costume struct {
-	Text string
 }
 
 type BaseSprite struct {
@@ -53,25 +90,15 @@ func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 }
 
 func (s *BaseSprite) AddCostume(costume Costume) {
-	c := strings.Split(costume.Text, "\n")
-	h := len(c)
-	w := 0
-	for _, l := range c {
-		w = max(w, len(l))
-	}
 	s.Costumes = append(s.Costumes, costume)
-	s.Height = h
-	s.Width = w
+	s.Height = s.Costumes[s.CurrentCostume].Height
+	s.Width = s.Costumes[s.CurrentCostume].Width
 }
 
 func (s *BaseSprite) Render() {
 	if s.Visible {
-		for y, line := range strings.Split(s.Costumes[s.CurrentCostume].Text, "\n") {
-			for x, ch := range line {
-				if ch != s.Alpha {
-					tm.SetCell(s.X+x, s.Y+y, ch, tm.ColorWhite, tm.ColorBlack)
-				}
-			}
+		for _, b := range s.Costumes[s.CurrentCostume].Blocks {
+			tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, tm.ColorWhite, tm.ColorBlack)
 		}
 	}
 }
