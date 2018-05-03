@@ -43,7 +43,7 @@ func (c *Costume) ChangeCostume(t string, alpha rune) {
 		}
 		height = y
 	}
-	c.Width = width
+	c.Width = width + 1
 	c.Height = height
 }
 
@@ -118,4 +118,17 @@ func (sg *SpriteGroup) Update() {
 	for _, s := range sg.Sprites {
 		s.Update()
 	}
+}
+
+func (sg *SpriteGroup) Remove(s Sprite) {
+	var idx int
+	for cnt, tSprite := range sg.Sprites {
+		if s == tSprite {
+			idx = cnt
+			break
+		}
+	}
+	copy(sg.Sprites[idx:], sg.Sprites[idx+1:])
+	sg.Sprites[len(sg.Sprites)-1] = nil
+	sg.Sprites = sg.Sprites[:len(sg.Sprites)-1]
 }
