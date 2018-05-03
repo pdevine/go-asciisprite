@@ -47,6 +47,76 @@ func (c *Costume) ChangeCostume(t string, alpha rune) {
 	c.Height = height
 }
 
+func (c *Costume) TopEdge() int {
+	top := c.Blocks[0].Y
+	for _, b := range c.Blocks[1:] {
+		top = min(b.Y, top)
+	}
+	return top
+}
+
+func (c *Costume) LeftEdge() int {
+	left := c.Blocks[0].X
+	for _, b := range c.Blocks[1:] {
+		left = min(b.X, left)
+	}
+	return left
+}
+
+func (c *Costume) RightEdge() int {
+	right := c.Blocks[0].X
+	for _, b := range c.Blocks[1:] {
+		right = max(b.X, right)
+	}
+	return right
+}
+
+func (c *Costume) BottomEdge() int {
+	bottom := c.Blocks[0].Y
+	for _, b := range c.Blocks[1:] {
+		bottom = max(b.Y, bottom)
+	}
+	return bottom
+}
+
+func (c *Costume) LeftEdgeByRow() map[int]int {
+	t := make(map[int]int)
+	for _, b := range c.Blocks {
+		if _, ok := t[b.Y]; ok == false {
+			t[b.Y] = b.X
+		}
+		t[b.Y] = min(t[b.Y], b.X)
+	}
+	return t
+}
+
+func (c *Costume) RightEdgeByRow() map[int]int {
+	t := make(map[int]int)
+	for _, b := range c.Blocks {
+		t[b.Y] = max(t[b.Y], b.X)
+	}
+	return t
+}
+
+func (c *Costume) BottomEdgeByColumn() map[int]int {
+	t := make(map[int]int)
+	for _, b := range c.Blocks {
+		t[b.X] = max(t[b.X], b.Y)
+	}
+	return t
+}
+
+func (c *Costume) TopEdgeByColumn() map[int]int {
+	t := make(map[int]int)
+	for _, b := range c.Blocks {
+		if _, ok := t[b.X]; ok == false {
+			t[b.X] = b.Y
+		}
+		t[b.X] = min(t[b.X], b.Y)
+	}
+	return t
+}
+
 type Sprite interface {
 	Update()
 	Render()
@@ -70,6 +140,13 @@ type SpriteGroup struct {
 
 func max(x, y int) int {
 	if x > y {
+		return x
+	}
+	return y
+}
+
+func min(x, y int) int {
+	if x < y {
 		return x
 	}
 	return y
