@@ -6,14 +6,18 @@ import (
 	tm "github.com/nsf/termbox-go"
 )
 
+type Attribute uint16
+
 type Block struct {
 	Char rune
+	Fg   tm.Attribute
+	Bg   tm.Attribute
 	X    int
 	Y    int
 }
 
 type Costume struct {
-	Blocks []Block
+	Blocks []*Block
 	Width  int
 	Height int
 }
@@ -25,14 +29,14 @@ func NewCostume(t string, alpha rune) Costume {
 }
 
 func (c *Costume) ChangeCostume(t string, alpha rune) {
-	c.Blocks = []Block{}
+	c.Blocks = []*Block{}
 	var width int
 	var height int
 
 	for y, line := range strings.Split(t, "\n") {
 		for x, ch := range line {
 			if ch != alpha {
-				b := Block{
+				b := &Block{
 					Char: ch,
 					X:    x,
 					Y:    y,
@@ -118,9 +122,13 @@ func (c *Costume) TopEdgeByColumn() map[int]int {
 }
 
 type Sprite interface {
+	Init()
 	Update()
 	Render()
 	AddCostume(Costume)
+	SetCostume(int)
+	NextCostume()
+	PrevCostume()
 }
 
 type BaseSprite struct {
@@ -132,6 +140,7 @@ type BaseSprite struct {
 	Alpha          rune
 	Visible        bool
 	CurrentCostume int
+	Dead           bool
 }
 
 type SpriteGroup struct {
@@ -161,6 +170,7 @@ func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 		Visible:        true,
 		Costumes:       []Costume{},
 		CurrentCostume: 0,
+		Dead:           false,
 	}
 	s.AddCostume(costume)
 	return s
@@ -168,6 +178,13 @@ func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 
 func (s *BaseSprite) AddCostume(costume Costume) {
 	s.Costumes = append(s.Costumes, costume)
+	if len(s.Costumes) == 1 {
+		s.SetCostume(0)
+	}
+}
+
+func (s *BaseSprite) SetCostume(c int) {
+	s.CurrentCostume = c
 	s.Height = s.Costumes[s.CurrentCostume].Height
 	s.Width = s.Costumes[s.CurrentCostume].Width
 }
@@ -175,9 +192,31 @@ func (s *BaseSprite) AddCostume(costume Costume) {
 func (s *BaseSprite) Render() {
 	if s.Visible {
 		for _, b := range s.Costumes[s.CurrentCostume].Blocks {
-			tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, tm.ColorWhite, tm.ColorBlack)
+			tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, tm.Attribute(b.Fg), tm.Attribute(b.Bg))
 		}
 	}
+}
+
+func (s *BaseSprite) NextCostume() {
+	s.CurrentCostume++
+	if s.CurrentCostume >= len(s.Costumes) {
+		s.CurrentCostume = 0
+	}
+	s.Height = s.Costumes[s.CurrentCostume].Height
+	s.Width = s.Costumes[s.CurrentCostume].Width
+}
+
+func (s *BaseSprite) PrevCostume() {
+	s.CurrentCostume--
+	if s.CurrentCostume < 0 {
+		s.CurrentCostume = len(s.Costumes) - 1
+	}
+	s.Height = s.Costumes[s.CurrentCostume].Height
+	s.Width = s.Costumes[s.CurrentCostume].Width
+}
+
+func (s *BaseSprite) Init() {
+	// Init things
 }
 
 func (s *BaseSprite) Update() {
