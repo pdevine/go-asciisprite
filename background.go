@@ -3,7 +3,7 @@ package sprite
 import (
 	"strings"
 
-	tm "github.com/nsf/termbox-go"
+	tm "github.com/gdamore/tcell/termbox"
 )
 
 type Background interface {
