@@ -248,3 +248,7 @@ func (sg *SpriteGroup) Remove(s Sprite) {
 	sg.Sprites[len(sg.Sprites)-1] = nil
 	sg.Sprites = sg.Sprites[:len(sg.Sprites)-1]
 }
+
+func (sg *SpriteGroup) RemoveAll() {
+	sg.Sprites = []Sprite{}
+}
