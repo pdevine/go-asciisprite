@@ -47,13 +47,13 @@ func Convert(s string) Costume {
 			if m[rcnt][ccnt] != 0 {
 				c += 1
 			}
-			if m[rcnt][ccnt+1] != 0 {
+			if len(m[rcnt]) > ccnt+1 && m[rcnt][ccnt+1] != 0 {
 				c += 2
 			}
-			if len(m) > rcnt+1 && m[rcnt+1][ccnt] == 'X' {
+			if len(m) > rcnt+1 && m[rcnt+1][ccnt] != 0 {
 				c += 4
 			}
-			if len(m) > rcnt+1 && m[rcnt+1][ccnt+1] == 'X' {
+			if len(m) > rcnt+1 && len(m[rcnt]) > ccnt+1 && m[rcnt+1][ccnt+1] == 'X' {
 				c += 8
 			}
 			b := &Block{
