@@ -1,6 +1,8 @@
 package main
 
 import (
+	//"fmt"
+	"math/rand"
 	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
@@ -12,19 +14,23 @@ var Width int
 var Height int
 var gameState *GameState
 
+var randSrc *rand.Rand
+
 type GameState struct {
 	invaders  []*Invader
 	direction int
 	nextFire  *NextInvaderToFire
 	player    *Fighter
+	lives     []*Fighter
+	GameOver  bool
 }
 
 type Invader struct {
 	sprite.BaseSprite
 	Timer     int
 	TimeOut   int
-	Exploding bool
 	Col	  int
+	Exploding bool
 	Dead      bool
 }
 
@@ -32,6 +38,7 @@ type NextInvaderToFire struct {
 	Invader *Invader
 	Timer   int
 	TimeOut int
+	Fired	bool
 }
 
 type Ufo struct {
@@ -46,8 +53,9 @@ type Fighter struct {
 	TimeOut   int
 	VX        float32
 	AX        float32
+	Counter   int
 	Exploding bool
-	Lives	  int
+	Dead      bool
 }
 
 type Bullet struct {
@@ -192,10 +200,64 @@ XXXXXXXXXXXXXXXXX
   XXX  XXX  XXX   
    X         X     `
 
+
+func NewGame() *GameState {
+	gameState = &GameState{player: NewFighter(),}
+	gameState.player.X = 34
+	allSprites.Sprites = append(allSprites.Sprites, gameState.player)
+
+	for i := 0; i < 2; i++ {
+		f := NewFighter()
+		f.Y = 75
+		f.X = i*8 + 2
+		gameState.lives = append(gameState.lives, f)
+		allSprites.Sprites = append(allSprites.Sprites, f)
+	}
+
+	return gameState
+}
+
 func (gs *GameState) Update() {
 	gs.cullSprites()
 	gs.checkDirection()
 	gs.nextFire.Update()
+	if gs.nextFire.Fired {
+		gs.setNextInvaderToFire()
+	}
+}
+
+func (gs *GameState) setNextInvaderToFire() {
+	var invaders map[int]int
+	invaders = make(map[int]int)
+	cols := []int{}
+
+	// iterate through each of the invaders and determine which columns they are in
+	for _, i := range gs.invaders {
+		if !i.Dead && !i.Exploding {
+			invaders[i.Col] += 1
+		}
+	}
+
+	// get the keys of the columns and choose one at random
+	for k, _ := range invaders {
+		cols = append(cols, k)
+	}
+	if len(cols) == 0 {
+		return
+	}
+	i_col := randSrc.Intn(len(cols))
+
+	// iterate backwards through the invaders and have the first one we find fire
+	for i := len(gs.invaders) - 1; i >= 0; i-- {
+		if gs.invaders[i].Col == cols[i_col] && !gs.invaders[i].Dead && !gs.invaders[i].Exploding {
+			gs.nextFire.Invader = gs.invaders[i]
+			break
+		}
+	}
+
+	gs.nextFire.Timer = 0
+	gs.nextFire.TimeOut = 5
+	gs.nextFire.Fired = false
 }
 
 func (gs *GameState) checkDirection() {
@@ -215,8 +277,9 @@ func (gs *GameState) checkDirection() {
 	if changeDir {
 		for _, s := range gs.invaders {
 			s.X += d
-			s.Y += 3
-
+			if !gs.GameOver {
+				s.Y += 3
+			}
 		}
 		gs.direction = -gs.direction
 	}
@@ -226,13 +289,24 @@ func (gs *GameState) cullSprites() {
 	for _, s := range allSprites.Sprites {
 		switch sp := s.(type) {
 		case *Bullet:
-			if sp.Dead == true {
+			if sp.Dead {
 				allSprites.Remove(sp)
 			}
 		case *Invader:
-			if sp.Dead == true {
+			if sp.Dead {
 				gs.removeInvader(sp)
 				allSprites.Remove(sp)
+			}
+		case *Fighter:
+			if sp.Dead {
+				allSprites.Remove(sp)
+				if len(gs.lives) == 0 {
+					gs.GameOver = true
+				} else {
+					gs.player = gs.lives[len(gs.lives)-1]
+					gs.lives = gs.lives[:len(gs.lives)-1]
+					gs.player.Y = 70
+				}
 			}
 		default:
 		}
@@ -289,6 +363,16 @@ func (gs *GameState) createWave() {
 	gs.nextFire = &NextInvaderToFire{
 		Invader: gs.invaders[len(gs.invaders)-1],
 		TimeOut: 5,
+		Fired:   false,
+	}
+}
+
+func (n *NextInvaderToFire) Update() {
+	n.Timer = n.Timer + 1
+	if n.Timer > n.TimeOut {
+		n.Invader.Fire()
+		n.Timer = 0
+		n.Fired = true
 	}
 }
 
@@ -317,6 +401,7 @@ func NewInvader(t int) *Invader {
 func (s *Invader) Explode() {
 	s.Costumes = []*sprite.Costume{}
 	s.AddCostume(sprite.Convert(explosion_c0))
+	s.AddCostume(sprite.Convert(explosion_c1))
 	s.Exploding = true
 }
 
@@ -344,14 +429,6 @@ func (s *Invader) Fire() {
 	b.AddCostume(sprite.Convert("X \n X\nX \n  "))
 	b.AddCostume(sprite.Convert(" X\nX \n X\n  "))
 	allSprites.Sprites = append(allSprites.Sprites, b)
-}
-
-func (n *NextInvaderToFire) Update() {
-	n.Timer = n.Timer + 1
-	if n.Timer > n.TimeOut {
-		n.Invader.Fire()
-		n.Timer = 0
-	}
 }
 
 func NewUfo() *Ufo {
@@ -389,14 +466,22 @@ func NewFighter() *Fighter {
 }
 
 func (s *Fighter) MoveLeft() {
-	s.AX -= 1
+	if !s.Exploding || !s.Dead {
+		s.AX -= 1
+	}
 }
 
 func (s *Fighter) MoveRight() {
-	s.AX += 1
+	if !s.Exploding || !s.Dead {
+		s.AX += 1
+	}
 } 
 
 func (s *Fighter) Fire() {
+	if s.Exploding || s.Dead {
+		return
+	}
+
 	b := &Bullet{BaseSprite: sprite.BaseSprite{
 		Visible: true,
 		X: s.X+3,
@@ -429,6 +514,10 @@ func (s *Fighter) Update() {
 				s.CurrentCostume = 0
 			}
 			s.Timer = 0
+			s.Counter += 1
+			if s.Counter > 4 {
+				s.Dead = true
+			}
 		}
 	}
 }
@@ -477,6 +566,9 @@ func main() {
 	}
 	defer tm.Close()
 
+	s := rand.NewSource(time.Now().Unix())
+	randSrc = rand.New(s)
+
 	Width, Height = tm.Size()
 
 	event_queue := make(chan tm.Event)
@@ -491,9 +583,7 @@ func main() {
 	//allSprites.Sprites = append(allSprites.Sprites, ufo)
 	//invaders = append(invaders, ufo)
 
-	gameState = &GameState{player: NewFighter(),}
-	gameState.player.X = 34
-	allSprites.Sprites = append(allSprites.Sprites, gameState.player)
+	gameState := NewGame()
 
 
 mainloop:
