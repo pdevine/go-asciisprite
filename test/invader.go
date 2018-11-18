@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -23,12 +23,16 @@ type GameState struct {
 	player    *Fighter
 	lives     []*Fighter
 	GameOver  bool
+	Score     *Score
+	UfoTimer  int
+	Ufo       *Ufo
 }
 
 type Invader struct {
 	sprite.BaseSprite
 	Timer     int
 	TimeOut   int
+	Type	  int
 	Col	  int
 	Exploding bool
 	Dead      bool
@@ -45,6 +49,8 @@ type Ufo struct {
 	sprite.BaseSprite
 	Timer   int
 	TimeOut int
+	Exploding bool
+	Dead      bool
 }
 
 type Fighter struct {
@@ -62,6 +68,11 @@ type Bullet struct {
 	sprite.BaseSprite
 	VY	int
 	Dead	bool
+}
+
+type Score struct {
+	sprite.BaseSprite
+	Val int
 }
 
 /*
@@ -206,6 +217,15 @@ func NewGame() *GameState {
 	gameState.player.X = 34
 	allSprites.Sprites = append(allSprites.Sprites, gameState.player)
 
+	gameState.Score = &Score{BaseSprite: sprite.BaseSprite{
+		Visible: true,
+		X:       20,
+		Y:       1},
+	}
+
+	gameState.Score.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", gameState.Score.Val))))
+	allSprites.Sprites = append(allSprites.Sprites, gameState.Score)
+
 	for i := 0; i < 2; i++ {
 		f := NewFighter()
 		f.Y = 75
@@ -223,6 +243,12 @@ func (gs *GameState) Update() {
 	gs.nextFire.Update()
 	if gs.nextFire.Fired {
 		gs.setNextInvaderToFire()
+	}
+	gs.UfoTimer++
+	if gs.UfoTimer > 500 {
+		gs.UfoTimer = 0
+		gs.Ufo = NewUfo()
+		allSprites.Sprites = append(allSprites.Sprites, gs.Ufo)
 	}
 }
 
@@ -297,6 +323,11 @@ func (gs *GameState) cullSprites() {
 				gs.removeInvader(sp)
 				allSprites.Remove(sp)
 			}
+		case *Ufo:
+			if sp.Dead {
+				allSprites.Remove(sp)
+				gs.Ufo = nil
+			}
 		case *Fighter:
 			if sp.Dead {
 				allSprites.Remove(sp)
@@ -330,7 +361,7 @@ func (gs *GameState) createWave() {
 	gs.direction = 2
 
 	for cnt := 0; cnt < 9; cnt++ {
-		i := NewInvader(1)
+		i := NewInvader(0)
 		i.Col = cnt
 		i.X = cnt * 10 + 10
 		i.Y = 7
@@ -340,7 +371,7 @@ func (gs *GameState) createWave() {
 
 	for y := 0; y < 2; y++ {
 		for cnt := 0; cnt < 9; cnt++ {
-	  		i := NewInvader(0)
+			i := NewInvader(1)
 			i.Col = cnt
 			i.X = cnt * 10 + 9
 			i.Y = y * 6 + 13
@@ -382,13 +413,14 @@ func NewInvader(t int) *Invader {
 		X:		2,
 		Y:              2,
 		CurrentCostume: 0},
+		Type:    t,
 		Timer:   0,
 		TimeOut: 6}
 
-	if t == 0 {
+	if t == 1 {
 		s.AddCostume(sprite.Convert(invader_c0))
 		s.AddCostume(sprite.Convert(invader_c1))
-	} else if t == 1 {
+	} else if t == 0 {
 		s.AddCostume(sprite.Convert(invader2_c0))
 		s.AddCostume(sprite.Convert(invader2_c1))
 	} else if t == 2 {
@@ -434,8 +466,8 @@ func (s *Invader) Fire() {
 func NewUfo() *Ufo {
 	s := &Ufo{BaseSprite: sprite.BaseSprite{
 		Visible:	true,
-		X: 2,
-		Y: 2},
+		X: -4,
+		Y: 4},
 		TimeOut: 3}
 	s.AddCostume(sprite.Convert(ufo_c0))
 	s.AddCostume(sprite.Convert(ufo_c1))
@@ -443,16 +475,26 @@ func NewUfo() *Ufo {
 }
 
 func (s *Ufo) Update() {
+	s.X += 1
 	s.Timer = s.Timer + 1
 	if s.Timer > s.TimeOut {
 		s.CurrentCostume = s.CurrentCostume + 1
 		if s.CurrentCostume >= len(s.Costumes) {
 			s.CurrentCostume = 0
+			if s.Exploding {
+				s.Dead = true
+			}
 		}
 		s.Timer = 0
 	}
 }
 
+func (s *Ufo) Explode() {
+	s.Costumes = []*sprite.Costume{}
+	s.AddCostume(sprite.Convert(explosion_c0))
+	s.AddCostume(sprite.Convert(explosion_c1))
+	s.Exploding = true
+}
 
 func NewFighter() *Fighter {
 	s := &Fighter{BaseSprite: sprite.BaseSprite{
@@ -548,11 +590,27 @@ func (s *Bullet) Update() {
 
 	for _, i := range gameState.invaders {
 		if !i.Exploding && i.HitAtPoint(s.X, s.Y) {
+			if i.Type == 0 {
+				gameState.Score.Val += 30
+			} else if i.Type == 1 {
+				gameState.Score.Val += 20
+			} else {
+				gameState.Score.Val += 10
+			}
 			i.Explode()
 			s.Dead = true
 		}
 	}
 
+	if gameState.Ufo != nil && gameState.Ufo.HitAtPoint(s.X, s.Y+1) {
+		gameState.Ufo.Explode()
+	}
+
+}
+
+func (s *Score) Update() {
+	gameState.Score.Costumes = nil
+	gameState.Score.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", gameState.Score.Val))))
 }
 
 
@@ -577,6 +635,7 @@ func main() {
 			event_queue <- tm.PollEvent()
 		}
 	}()
+
 
 	//ufo := NewUfo()
 	//ufo.X = 24
