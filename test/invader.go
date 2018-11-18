@@ -16,13 +16,22 @@ var gameState *GameState
 
 var randSrc *rand.Rand
 
+type GameStateScreen int
+
+const (
+	Title GameStateScreen = iota
+	Play
+	GameOver
+)
+
+
 type GameState struct {
 	invaders  []*Invader
 	direction int
 	nextFire  *NextInvaderToFire
 	player    *Fighter
 	lives     []*Fighter
-	GameOver  bool
+	State     GameStateScreen
 	Score     *Score
 	UfoTimer  int
 	Ufo       *Ufo
@@ -74,6 +83,29 @@ type Score struct {
 	sprite.BaseSprite
 	Val int
 }
+
+type Logo struct {
+	sprite.BaseSprite
+}
+
+const logo = `                                                                                      
+                               XXXX                                                    
+                             XXXXX   XXXXXXX          XXXXXXXXX                        
+                           XXXXX    XXXXXXX          XXXXXXXXX                         
+                         XXX XXX   XXX     XXX   XXX   XXX                             
+                             XXX  XXXXX     XXX XXX   XXX                              
+                             XXX  XX         XXX     XXX                               
+                             XXX  XXXXX   XXX  XXX  XXX                                
+                                                                                       
+   XXXXXXXXX  XXX  XXX  XXX     XXX    XXXX    XXXXXXX      XXXXXX  XXXXXX     XXXXXX  
+    XXXXXXXXX  XXX  XXX  XXX    XXX   XX  XX   XXX   XX    XXXXXX  XX  XXX    XXXXXX   
+        XXX     XXXXXXXX  XXX   XXX   XX  XX   XXX   XX    XX     XX   XXX  XXX        
+         XXX     XXXXXXXX  XXX  XXX  XX    XX  XXX  XX   XXXX     XX  XXX    XXX       
+          XXX     XXX XXXX  XXX XXX  XXXXXXXX  XXX  XX   XXXX    XXXXXX       XXX      
+           XXX     XXX  XXX  XXXXXX  XXXXXXXX  XXX  XX  XX       XX  XX         XXX    
+         XXXXXXXXX  XXX  XXX  XXXXX  XX    XX  XXXXXX  XXXXX   XXX  XX     XXXXXX      
+          XXXXXXXXX  XXX  XXX  XXX  XXX    XXX XXXXXX  XXXXXX  XXX   XXX  XXXXXX       
+                                                                                       `
 
 /*
 const invader_c0 = `  X     X
@@ -212,42 +244,83 @@ XXXXXXXXXXXXXXXXX
    X         X     `
 
 
-func NewGame() *GameState {
-	gameState = &GameState{player: NewFighter(),}
-	gameState.player.X = 34
-	allSprites.Sprites = append(allSprites.Sprites, gameState.player)
+const frame_ul = `XXXXXXXX
+XXXXXXXX
+XX      
+XX      
+XX      
+XX      `
 
-	gameState.Score = &Score{BaseSprite: sprite.BaseSprite{
+const frame_ur = `XXXXXXXX
+XXXXXXXX
+      XX
+      XX
+      XX
+      XX`
+
+const frame_ll = `XX      
+XX      
+XX      
+XX      
+XXXXXXXX
+XXXXXXXX`
+
+const frame_lr = `      XX
+      XX
+      XX
+      XX
+XXXXXXXX
+XXXXXXXX`
+
+func NewGame() *GameState {
+	gs := &GameState{State: Title}
+	return gs
+}
+
+func (gs *GameState) StartGame() {
+	allSprites.RemoveAll()
+
+	gs.player = NewFighter()
+	gs.player.X = 34
+	allSprites.Sprites = append(allSprites.Sprites, gs.player)
+
+	gs.Score = &Score{BaseSprite: sprite.BaseSprite{
 		Visible: true,
 		X:       20,
 		Y:       1},
 	}
 
-	gameState.Score.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", gameState.Score.Val))))
-	allSprites.Sprites = append(allSprites.Sprites, gameState.Score)
+	gs.Score.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", gs.Score.Val))))
+	allSprites.Sprites = append(allSprites.Sprites, gs.Score)
 
 	for i := 0; i < 2; i++ {
 		f := NewFighter()
 		f.Y = 75
 		f.X = i*8 + 2
-		gameState.lives = append(gameState.lives, f)
+		gs.lives = append(gs.lives, f)
 		allSprites.Sprites = append(allSprites.Sprites, f)
 	}
-
-	return gameState
+	gs.State = Play
 }
 
 func (gs *GameState) Update() {
+	t := 150
 	gs.cullSprites()
-	gs.checkDirection()
-	gs.nextFire.Update()
-	if gs.nextFire.Fired {
-		gs.setNextInvaderToFire()
+	if gs.State == Play || gs.State == GameOver {
+		gs.checkDirection()
+		gs.nextFire.Update()
+		if gs.nextFire.Fired {
+			gs.setNextInvaderToFire()
+		}
+		t = 500
 	}
 	gs.UfoTimer++
-	if gs.UfoTimer > 500 {
+	if gs.UfoTimer > t {
 		gs.UfoTimer = 0
 		gs.Ufo = NewUfo()
+		if gs.State == Title {
+			gs.Ufo.Y = 34
+		}
 		allSprites.Sprites = append(allSprites.Sprites, gs.Ufo)
 	}
 }
@@ -288,6 +361,7 @@ func (gs *GameState) setNextInvaderToFire() {
 
 func (gs *GameState) checkDirection() {
 	changeDir := false
+	dead := false
 	var d int
 	for _, s := range gs.invaders {
 		if s.X > 98 && gs.direction > 0 {
@@ -303,11 +377,21 @@ func (gs *GameState) checkDirection() {
 	if changeDir {
 		for _, s := range gs.invaders {
 			s.X += d
-			if !gs.GameOver {
+			if gs.State != GameOver {
 				s.Y += 3
+				if gs.player.Y - s.Y < 5 {
+					dead = true
+				}
 			}
 		}
 		gs.direction = -gs.direction
+	}
+	if dead {
+		gs.player.Explode()
+		for _, f := range gs.lives {
+			f.Explode()
+		}
+		gs.State = GameOver
 	}
 }
 
@@ -332,7 +416,7 @@ func (gs *GameState) cullSprites() {
 			if sp.Dead {
 				allSprites.Remove(sp)
 				if len(gs.lives) == 0 {
-					gs.GameOver = true
+					gs.State = GameOver
 				} else {
 					gs.player = gs.lives[len(gs.lives)-1]
 					gs.lives = gs.lives[:len(gs.lives)-1]
@@ -476,6 +560,9 @@ func NewUfo() *Ufo {
 
 func (s *Ufo) Update() {
 	s.X += 1
+	if s.X > 100 {
+		s.Dead = true
+	}
 	s.Timer = s.Timer + 1
 	if s.Timer > s.TimeOut {
 		s.CurrentCostume = s.CurrentCostume + 1
@@ -609,10 +696,75 @@ func (s *Bullet) Update() {
 }
 
 func (s *Score) Update() {
-	gameState.Score.Costumes = nil
-	gameState.Score.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", gameState.Score.Val))))
+	s.Costumes = nil
+	s.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", s.Val))))
 }
 
+func (s *Logo) Update() {
+	if s.Y < 10 {
+		s.Y++
+	}
+}
+
+func ShowTitle() {
+	l := &Logo{BaseSprite: sprite.BaseSprite{
+		X: 30,
+		Y: -10,
+		Visible: true},
+	}
+	l.AddCostume(sprite.Convert(logo))
+
+	ul := &sprite.BaseSprite{
+		X: 1,
+		Y: 1,
+		Visible: true,
+	}
+	ul.AddCostume(sprite.Convert(frame_ul))
+
+	ur := &sprite.BaseSprite{
+		X:       99,
+		Y:       1,
+		Visible: true,
+	}
+	ur.AddCostume(sprite.Convert(frame_ur))
+
+	ll := &sprite.BaseSprite{
+		X:       1,
+		Y:       76,
+		Visible: true,
+	}
+	ll.AddCostume(sprite.Convert(frame_ll))
+
+	lr := &sprite.BaseSprite{
+		X:       99,
+		Y:       76,
+		Visible: true,
+	}
+	lr.AddCostume(sprite.Convert(frame_lr))
+
+	adj_txt := &sprite.BaseSprite{
+		X: 20,
+		Y: 22,
+		Visible: true,
+	}
+	adj_txt.AddCostume(sprite.NewCostume("ADJUST YOUR TERMINAL TO SEE ALL OF THE EDGES OF THE PLAY AREA", '@'))
+
+	font_txt := &sprite.BaseSprite{
+		X: 27,
+		Y: 24,
+		Visible: true,
+	}
+	font_txt.AddCostume(sprite.NewCostume("Recommended Font:  Menlo 8pt (0.81 Line Spacing)", '@'))
+
+
+	allSprites.Sprites = append(allSprites.Sprites, l)
+	allSprites.Sprites = append(allSprites.Sprites, ul)
+	allSprites.Sprites = append(allSprites.Sprites, ur)
+	allSprites.Sprites = append(allSprites.Sprites, ll)
+	allSprites.Sprites = append(allSprites.Sprites, lr)
+	allSprites.Sprites = append(allSprites.Sprites, adj_txt)
+	allSprites.Sprites = append(allSprites.Sprites, font_txt)
+}
 
 func main() {
 	// XXX - Wait a bit until the terminal is properly initialized
@@ -636,14 +788,9 @@ func main() {
 		}
 	}()
 
+	gameState = NewGame()
 
-	//ufo := NewUfo()
-	//ufo.X = 24
-	//allSprites.Sprites = append(allSprites.Sprites, ufo)
-	//invaders = append(invaders, ufo)
-
-	gameState := NewGame()
-
+	ShowTitle()
 
 mainloop:
 	for {
@@ -652,22 +799,31 @@ mainloop:
 		select {
 		case ev := <-event_queue:
 			if ev.Type == tm.EventKey {
+				if gameState.State == Title {
+					gameState.StartGame()
+					continue
+				}
+
 				if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
 					break mainloop
-				} else if ev.Key == tm.KeyArrowLeft {
-					gameState.player.MoveLeft()
-				} else if ev.Key == tm.KeyArrowRight {
-					gameState.player.MoveRight()
-				} else if ev.Key == tm.KeySpace {
-					gameState.player.Fire()
+				} else if gameState.State == Play {
+					if ev.Key == tm.KeyArrowLeft {
+						gameState.player.MoveLeft()
+					} else if ev.Key == tm.KeyArrowRight {
+						gameState.player.MoveRight()
+					} else if ev.Key == tm.KeySpace {
+						gameState.player.Fire()
+					}
 				}
 			} else if ev.Type == tm.EventResize {
 				Width = ev.Width
 				Height = ev.Height
 			}
 		default:
-			if len(gameState.invaders) == 0 {
-				gameState.createWave()
+			if gameState.State == Play {
+				if len(gameState.invaders) == 0 {
+					gameState.createWave()
+				}
 			}
 			allSprites.Update()
 			gameState.Update()
