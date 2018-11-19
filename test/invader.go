@@ -581,6 +581,10 @@ func (s *Ufo) Explode() {
 	s.AddCostume(sprite.Convert(explosion_c0))
 	s.AddCostume(sprite.Convert(explosion_c1))
 	s.Exploding = true
+	scores := []int{50, 100, 150, 200, 250, 300}
+	score := randSrc.Intn(len(scores))
+	gameState.Score.Val += scores[score]
+
 }
 
 func NewFighter() *Fighter {
@@ -689,7 +693,7 @@ func (s *Bullet) Update() {
 		}
 	}
 
-	if gameState.Ufo != nil && gameState.Ufo.HitAtPoint(s.X, s.Y+1) {
+	if gameState.Ufo != nil && !gameState.Ufo.Exploding && gameState.Ufo.HitAtPoint(s.X, s.Y+1) {
 		gameState.Ufo.Explode()
 	}
 
