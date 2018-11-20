@@ -701,7 +701,7 @@ func (s *Bullet) Update() {
 
 func (s *Score) Update() {
 	s.Costumes = nil
-	s.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", s.Val))))
+	s.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("score %06d", s.Val))))
 }
 
 func (s *Logo) Update() {
