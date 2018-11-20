@@ -18,7 +18,7 @@ XX
 X X 
 XX  `
 
-const Font_c = `
+const Font_c = `    
  XX 
 X   
 X   
@@ -30,9 +30,9 @@ XX
 X X 
 X X 
 X X 
-XX  `
+XXX `
 
-const Font_e = `
+const Font_e = `    
 XXX 
 X   
 XX  
@@ -46,12 +46,12 @@ XX
 X   
 X   `
 
-const Font_g = `      
- XX   
-X  X  
-X     
-X XXX 
- XXX  `
+const Font_g = `    
+ XX 
+X   
+X   
+X X 
+XXX `
 
 const Font_h = `    
 X X 
@@ -89,39 +89,39 @@ X
 XXX `
 
 const Font_m = `      
-X   X 
-XX XX 
-X X X 
-X   X 
-X   X `
+XXX 
+XXX 
+X X 
+X X 
+X X `
 
 const Font_n = `      
-X   X 
-XX  X 
-X X X 
-X  XX 
-X   X `
+XX  
+X X 
+X X 
+X X 
+X X `
 
 const Font_o = `    
- X  
+ XX 
 X X 
 X X 
 X X 
- X  `
+XX  `
 
 const Font_p = `    
 XX  
 X X 
 XX  
-X  
+X   
 X   `
 
-const Font_q = `      
- XX   
-X  X  
-X  X  
-X XX  
- XX X `
+const Font_q = `    
+ XX 
+X X 
+X X 
+XXX 
+  X `
 
 const Font_r = `    
 XX  
@@ -133,9 +133,9 @@ X X `
 const Font_s = `    
  XX 
 X   
- XX 
-   X
- XX `
+XXX 
+  X 
+XX  `
 
 const Font_t = `    
 XXX 
@@ -149,7 +149,7 @@ X X
 X X 
 X X 
 X X 
-XXX `
+ XX `
 
 const Font_v = `    
 X X 
@@ -158,12 +158,12 @@ X X
 X X 
  X  `
 
-const Font_w = `      
-X   X 
-X   X 
-X   X 
-X X X 
- X X  `
+const Font_w = `    
+X X 
+X X 
+X X 
+XXX 
+XXX `
 
 const Font_x = `    
 X X 
@@ -175,9 +175,9 @@ X X `
 const Font_y = `    
 X X 
 X X 
- X  
- X  
- X  `
+XXX 
+  X 
+XXX `
 
 const Font_z = `    
 XXX 
@@ -256,6 +256,41 @@ XXX
   X 
 XXX `
 
+const Font_period = `    
+    
+    
+    
+    
+ X  `
+
+const Font_comma = `    
+    
+    
+    
+ X  
+ X  `
+
+const Font_slash = `    
+  X 
+ X  
+ X  
+ X  
+X   `
+
+const Font_exclamation = `    
+ X  
+ X  
+ X  
+    
+ X  `
+
+const Font_dash = `    
+    
+    
+XXX 
+    
+    `
+
 func BuildString(s string) string {
 
 	c_lookup := map[rune]string{
@@ -295,6 +330,11 @@ func BuildString(s string) string {
 		'7': Font_7,
 		'8': Font_8,
 		'9': Font_9,
+		'.': Font_period,
+		',': Font_comma,
+		'/': Font_slash,
+		'!': Font_exclamation,
+		'-': Font_dash,
 	}
 
 	t := [][]string{}
