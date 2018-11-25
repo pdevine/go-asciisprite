@@ -96,12 +96,15 @@ type Score struct {
 
 type Logo struct {
 	sprite.BaseSprite
+	TargetY int
+	VY      float64
+	DY      float64
 }
 
 type Arrow struct {
 	sprite.BaseSprite
-	Fx    float64
-	Fy    float64
+	DX    float64
+	DY    float64
 	Angle float64
 	Type  EdgeType
 }
@@ -676,7 +679,7 @@ func (s *Fighter) Fire() {
 
 func (s *Fighter) Update() {
 	s.VX = s.VX + s.AX
-	s.AX = 0
+	s.VX *= 0.97
 	s.X += int(s.VX)
 
 	if s.X < 2 {
@@ -755,9 +758,8 @@ func (s *Score) Update() {
 }
 
 func (s *Logo) Update() {
-	if s.Y < 10 {
-		s.Y++
-	}
+	s.VY = (float64(s.TargetY) - float64(s.Y)) * 0.3
+	s.Y += int(math.Round(s.VY))
 }
 
 func NewArrow(t EdgeType) *Arrow {
@@ -767,20 +769,20 @@ func NewArrow(t EdgeType) *Arrow {
 	}
 	switch s.Type {
 	case UpperLeftEdge:
-		s.Fx = 4
-		s.Fy = 3
+		s.DX = 4
+		s.DY = 3
 		s.AddCostume(sprite.Convert(arrow_ul))
 	case UpperRightEdge:
-		s.Fx = 96
-		s.Fy = 3
+		s.DX = 96
+		s.DY = 3
 		s.AddCostume(sprite.Convert(arrow_ur))
 	case LowerLeftEdge:
-		s.Fx =  4
-		s.Fy = 74
+		s.DX =  4
+		s.DY = 74
 		s.AddCostume(sprite.Convert(arrow_ll))
 	case LowerRightEdge:
-		s.Fx = 96
-		s.Fy = 74
+		s.DX = 96
+		s.DY = 74
 		s.AddCostume(sprite.Convert(arrow_lr))
 	}
 	return s
@@ -792,20 +794,20 @@ func (s *Arrow) Update() {
 	d := math.Sin(s.Angle) * 0.2
 	switch s.Type {
 	case UpperLeftEdge:
-		s.Fx += d
-		s.Fy += d
+		s.DX += d
+		s.DY += d
 	case UpperRightEdge:
-		s.Fx -= d
-		s.Fy += d
+		s.DX -= d
+		s.DY += d
 	case LowerLeftEdge:
-		s.Fx += d
-		s.Fy -= d
+		s.DX += d
+		s.DY -= d
 	case LowerRightEdge:
-		s.Fx -= d
-		s.Fy -= d
+		s.DX -= d
+		s.DY -= d
 	}
-	s.X = int(math.Round(s.Fx))
-	s.Y = int(math.Round(s.Fy))
+	s.X = int(math.Round(s.DX))
+	s.Y = int(math.Round(s.DY))
 
 }
 
@@ -838,9 +840,10 @@ func NewEdge(t EdgeType) *Edge {
 
 func ShowTitle() {
 	l := &Logo{BaseSprite: sprite.BaseSprite{
-		X: 30,
-		Y: -10,
+		X:       30,
+		Y:       -10,
 		Visible: true},
+		TargetY: 10,
 	}
 	l.AddCostume(sprite.Convert(logo))
 
