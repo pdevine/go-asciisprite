@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
@@ -16,6 +17,16 @@ var gameState *GameState
 
 var randSrc *rand.Rand
 
+
+type EdgeType int
+
+const (
+	UpperLeftEdge EdgeType = iota
+	UpperRightEdge
+	LowerLeftEdge
+	LowerRightEdge
+)
+
 type GameStateScreen int
 
 const (
@@ -23,7 +34,6 @@ const (
 	Play
 	GameOver
 )
-
 
 type GameState struct {
 	invaders  []*Invader
@@ -85,6 +95,18 @@ type Score struct {
 }
 
 type Logo struct {
+	sprite.BaseSprite
+}
+
+type Arrow struct {
+	sprite.BaseSprite
+	Fx    float64
+	Fy    float64
+	Angle float64
+	Type  EdgeType
+}
+
+type Edge struct {
 	sprite.BaseSprite
 }
 
@@ -271,6 +293,34 @@ const frame_lr = `      XX
       XX
 XXXXXXXX
 XXXXXXXX`
+
+const arrow_ul = `      
+XXXXX  
+XXX    
+X XX   
+X  XX  
+    XX `
+
+const arrow_ur = `        
+   XXXXX
+     XXX
+    XX X
+   XX  X
+  XX    `
+
+const arrow_ll = `        
+    XX  
+X  XX   
+X XX    
+XXX     
+XXXXX   `
+
+const arrow_lr = `        
+  XX    
+   XX  X
+    XX X
+     XXX
+   XXXXX`
 
 func NewGame() *GameState {
 	gs := &GameState{State: Title}
@@ -710,6 +760,82 @@ func (s *Logo) Update() {
 	}
 }
 
+func NewArrow(t EdgeType) *Arrow {
+	s := &Arrow{BaseSprite: sprite.BaseSprite{
+		Visible: true},
+		Type: t,
+	}
+	switch s.Type {
+	case UpperLeftEdge:
+		s.Fx = 4
+		s.Fy = 3
+		s.AddCostume(sprite.Convert(arrow_ul))
+	case UpperRightEdge:
+		s.Fx = 96
+		s.Fy = 3
+		s.AddCostume(sprite.Convert(arrow_ur))
+	case LowerLeftEdge:
+		s.Fx =  4
+		s.Fy = 74
+		s.AddCostume(sprite.Convert(arrow_ll))
+	case LowerRightEdge:
+		s.Fx = 96
+		s.Fy = 74
+		s.AddCostume(sprite.Convert(arrow_lr))
+	}
+	return s
+}
+
+func (s *Arrow) Update() {
+	s.Angle += 0.25
+
+	d := math.Sin(s.Angle) * 0.2
+	switch s.Type {
+	case UpperLeftEdge:
+		s.Fx += d
+		s.Fy += d
+	case UpperRightEdge:
+		s.Fx -= d
+		s.Fy += d
+	case LowerLeftEdge:
+		s.Fx += d
+		s.Fy -= d
+	case LowerRightEdge:
+		s.Fx -= d
+		s.Fy -= d
+	}
+	s.X = int(math.Round(s.Fx))
+	s.Y = int(math.Round(s.Fy))
+
+}
+
+func NewEdge(t EdgeType) *Edge {
+	s := &Edge{BaseSprite: sprite.BaseSprite{
+		Visible: true},
+	}
+
+	switch t {
+	case UpperLeftEdge:
+		s.X = 1
+		s.Y = 1
+		s.AddCostume(sprite.Convert(frame_ul))
+	case UpperRightEdge:
+		s.X = 99
+		s.Y = 1
+		s.AddCostume(sprite.Convert(frame_ur))
+	case LowerLeftEdge:
+		s.X = 1
+		s.Y = 76
+		s.AddCostume(sprite.Convert(frame_ll))
+	case LowerRightEdge:
+		s.X = 99
+		s.Y = 76
+		s.AddCostume(sprite.Convert(frame_lr))
+	}
+	return s
+}
+
+
 func ShowTitle() {
 	l := &Logo{BaseSprite: sprite.BaseSprite{
 		X: 30,
@@ -717,34 +843,6 @@ func ShowTitle() {
 		Visible: true},
 	}
 	l.AddCostume(sprite.Convert(logo))
-
-	ul := &sprite.BaseSprite{
-		X: 1,
-		Y: 1,
-		Visible: true,
-	}
-	ul.AddCostume(sprite.Convert(frame_ul))
-
-	ur := &sprite.BaseSprite{
-		X:       99,
-		Y:       1,
-		Visible: true,
-	}
-	ur.AddCostume(sprite.Convert(frame_ur))
-
-	ll := &sprite.BaseSprite{
-		X:       1,
-		Y:       76,
-		Visible: true,
-	}
-	ll.AddCostume(sprite.Convert(frame_ll))
-
-	lr := &sprite.BaseSprite{
-		X:       99,
-		Y:       76,
-		Visible: true,
-	}
-	lr.AddCostume(sprite.Convert(frame_lr))
 
 	adj_txt := &sprite.BaseSprite{
 		X: 20,
@@ -760,12 +858,15 @@ func ShowTitle() {
 	}
 	font_txt.AddCostume(sprite.NewCostume("Recommended Font:  Menlo 8pt (0.81 Line Spacing)", '@'))
 
+	for _, et := range []EdgeType{UpperLeftEdge, UpperRightEdge, LowerLeftEdge, LowerRightEdge} {
+		a := NewArrow(et)
+		e := NewEdge(et)
+		allSprites.Sprites = append(allSprites.Sprites, e)
+		allSprites.Sprites = append(allSprites.Sprites, a)
+
+	}
 
 	allSprites.Sprites = append(allSprites.Sprites, l)
-	allSprites.Sprites = append(allSprites.Sprites, ul)
-	allSprites.Sprites = append(allSprites.Sprites, ur)
-	allSprites.Sprites = append(allSprites.Sprites, ll)
-	allSprites.Sprites = append(allSprites.Sprites, lr)
 	allSprites.Sprites = append(allSprites.Sprites, adj_txt)
 	allSprites.Sprites = append(allSprites.Sprites, font_txt)
 }
