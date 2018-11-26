@@ -76,8 +76,8 @@ type Fighter struct {
 	sprite.BaseSprite
 	Timer     int
 	TimeOut   int
-	VX        float32
-	AX        float32
+	VX        float64
+	AX        float64
 	Counter   int
 	Exploding bool
 	Dead      bool
@@ -653,13 +653,15 @@ func NewFighter() *Fighter {
 
 func (s *Fighter) MoveLeft() {
 	if !s.Exploding || !s.Dead {
-		s.AX -= 1
+		s.AX = -3
+		s.VX = 0
 	}
 }
 
 func (s *Fighter) MoveRight() {
 	if !s.Exploding || !s.Dead {
-		s.AX += 1
+		s.AX = 3
+		s.VX = 0
 	}
 } 
 
@@ -679,8 +681,9 @@ func (s *Fighter) Fire() {
 
 func (s *Fighter) Update() {
 	s.VX = s.VX + s.AX
-	s.VX *= 0.97
-	s.X += int(s.VX)
+	s.AX = 0
+	s.VX *= 0.85
+	s.X += int(math.Round(s.VX))
 
 	if s.X < 2 {
 		s.X = 2
