@@ -26,17 +26,28 @@ var Blocks = map[int]rune{
 func Convert(s string) Costume {
 	blocks := []*Block{}
 	l := strings.Split(s, "\n")
+	maxR := len(l) + len(l)%2
 
-	m := make([][]rune, len(l) + len(l)%2)
+	// all block sprites must be even
+	m := make([][]rune, maxR, maxR)
+
+	var maxC int
+	for _, r := range l {
+		maxC = max(maxC, len(r) + len(r)%2)
+	}
 
 	for rcnt, r := range l {
-		// add extra space for odd widths
-		m[rcnt] = make([]rune, len(r) + len(r)%2)
+		m[rcnt] = make([]rune, maxC, maxC)
 		for ccnt, c := range r {
 			if c != ' ' {
 				m[rcnt][ccnt] = c
 			}
 		}	
+	}
+
+	// make certain we make a row for any added space
+	if len(l) < maxR {
+		m[maxR-1] = make([]rune, maxC, maxC)
 	}
 
 	for rcnt := 0; rcnt < len(m); rcnt+=2 {
@@ -56,12 +67,15 @@ func Convert(s string) Costume {
 			if len(m) > rcnt+1 && len(m[rcnt]) > ccnt+1 && m[rcnt+1][ccnt+1] == 'X' {
 				c += 8
 			}
-			b := &Block{
-				Char: Blocks[c],
-				X:    ccnt/2,
-				Y:    rcnt/2,
+
+			if c > 0 {
+				b := &Block{
+					Char: Blocks[c],
+					X:    ccnt/2,
+					Y:    rcnt/2,
+				}
+				blocks = append(blocks, b)
 			}
-			blocks = append(blocks, b)
 		}
 	}
 
