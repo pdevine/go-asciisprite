@@ -56,7 +56,7 @@ func NewWhale() *Whale {
 		Height:         0,
 		Width:          0,
 		Visible:        true,
-		Costumes:       []sprite.Costume{},
+		Costumes:       []*sprite.Costume{},
 		CurrentCostume: 0,
 	},
 	}

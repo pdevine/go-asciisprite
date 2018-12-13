@@ -2,7 +2,8 @@ package sprite
 
 import (
 	//"fmt"
-	tm "github.com/gdamore/tcell/termbox"
+	//tm "github.com/gdamore/tcell/termbox"
+	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
 type Sprite interface {
@@ -62,6 +63,8 @@ func (s *BaseSprite) SetCostume(c int) {
 func (s *BaseSprite) Render() {
 	if s.Visible {
 		for _, b := range s.Costumes[s.CurrentCostume].Blocks {
+			// call tcell screen.GetContent(b.X+s.X, b.Y+s.Y) here to see if we've already
+			// written to the same location 
 			tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, tm.Attribute(b.Fg), tm.Attribute(b.Bg))
 		}
 	}

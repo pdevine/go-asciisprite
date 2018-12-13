@@ -7,7 +7,8 @@ import (
 	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
-	tm "github.com/gdamore/tcell/termbox"
+	//tm "github.com/gdamore/tcell/termbox"
+	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
 var allSprites sprite.SpriteGroup

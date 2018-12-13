@@ -2,6 +2,8 @@ package sprite
 
 import (
 	"strings"
+	//tm "github.com/gdamore/tcell/termbox"
+	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
 var Blocks = map[int]rune{
@@ -21,6 +23,15 @@ var Blocks = map[int]rune{
   13: '▙',
   14: '▟',
   15: '█',
+}
+
+var ColorMap = map[rune]tm.Attribute{
+   'R': tm.ColorRed,
+   'b': tm.Attribute(53),
+   't': tm.Attribute(180),
+   'Y': tm.ColorYellow,
+   'N': tm.ColorBlack,
+   'B': tm.ColorBlue,
 }
 
 func Convert(s string) Costume {
@@ -76,6 +87,84 @@ func Convert(s string) Costume {
 				}
 				blocks = append(blocks, b)
 			}
+		}
+	}
+
+	costume := Costume{Blocks: blocks}
+
+	return costume
+}
+
+
+
+func ColorConvert(s string) Costume {
+	blocks := []*Block{}
+	l := strings.Split(s, "\n")
+	maxR := len(l) + len(l)%2
+
+	// all block sprites must be even
+	m := make([][]rune, maxR, maxR)
+
+	var maxC int
+	for _, r := range l {
+		maxC = max(maxC, len(r) + len(r)%2)
+	}
+
+	for rcnt, r := range l {
+		m[rcnt] = make([]rune, maxC, maxC)
+		for ccnt, c := range r {
+			if c != ' ' {
+				m[rcnt][ccnt] = c
+			}
+		}
+	}
+
+	// make certain we make a row for any added space
+	if len(l) < maxR {
+		m[maxR-1] = make([]rune, maxC, maxC)
+	}
+
+	for rcnt := 0; rcnt < len(m); rcnt+=2 {
+		for ccnt := 0; ccnt < len(m[rcnt]); ccnt+=2 {
+			var fg tm.Attribute
+			var bg tm.Attribute
+
+			runes := []rune{
+				m[rcnt][ccnt],
+				m[rcnt][ccnt+1],
+				m[rcnt+1][ccnt],
+				m[rcnt+1][ccnt+1],
+			}
+
+			for _, b := range runes {
+				if b > 0 && fg == 0{
+					fg = ColorMap[b]
+					continue
+				} else if ColorMap[b] != fg {
+					bg = ColorMap[b]
+				}
+			}
+
+			// if we didn't set a foreground, just skip the block
+			if fg == 0 {
+				continue
+			}
+
+			c := 0
+			for cnt, b := range runes {
+				if ColorMap[b] == fg {
+					c += int(uint(1) << uint(cnt))
+				}
+			}
+
+			blk := &Block{
+				Char: Blocks[c],
+				X:    ccnt/2,
+				Y:    rcnt/2,
+				Fg:   tm.Attribute(fg),
+				Bg:   tm.Attribute(bg),
+			}
+			blocks = append(blocks, blk)
 		}
 	}
 

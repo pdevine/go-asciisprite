@@ -3,7 +3,7 @@ package sprite
 import (
 	"strings"
 
-	tm "github.com/gdamore/tcell/termbox"
+	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
 type Block struct {
