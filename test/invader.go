@@ -67,8 +67,9 @@ type NextInvaderToFire struct {
 
 type Ufo struct {
 	sprite.BaseSprite
-	Timer   int
-	TimeOut int
+	Timer     int
+	TimeOut   int
+	Direction int
 	Exploding bool
 	Dead      bool
 }
@@ -460,6 +461,15 @@ func (gs *GameState) cullSprites() {
 			if sp.Dead {
 				gs.removeInvader(sp)
 				allSprites.Remove(sp)
+				l := len(gameState.invaders)-1
+				speedUps := []int{36, 27, 18, 9, 3, 2}
+				for _, sp := range speedUps {
+					if l == sp {
+						for _, i := range gameState.invaders {
+							i.TimeOut--
+						}
+					}
+				}
 			}
 		case *Ufo:
 			if sp.Dead {
@@ -602,20 +612,36 @@ func (s *Invader) Fire() {
 }
 
 func NewUfo() *Ufo {
+	var x int
+	ds := []int{-1, 1}
+	d := ds[randSrc.Intn(len(ds))]
+	if d < 0 {
+		x = 100
+	} else {
+		x = -4
+	}
 	s := &Ufo{BaseSprite: sprite.BaseSprite{
-		Visible:	true,
-		X: -4,
-		Y: 4},
-		TimeOut: 3}
+		Visible: true,
+		X:       x,
+		Y:       4},
+		Direction: d,
+		TimeOut:   3}
 	s.AddCostume(sprite.Convert(ufo_c0))
 	s.AddCostume(sprite.Convert(ufo_c1))
 	return s
 }
 
 func (s *Ufo) Update() {
-	s.X += 1
-	if s.X > 100 {
-		s.Dead = true
+	if s.Direction > 0 {
+		s.X += 1
+		if s.X > 100 {
+			s.Dead = true
+		}
+	} else {
+		s.X -= 1
+		if s.X+s.Width < 0 {
+			s.Dead = true
+		}
 	}
 	s.Timer = s.Timer + 1
 	if s.Timer > s.TimeOut {
