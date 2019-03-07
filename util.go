@@ -13,3 +13,10 @@ func min(x, y int) int {
 	}
 	return y
 }
+
+type Rect struct {
+	X int
+	Y int
+	W int
+	H int
+}
