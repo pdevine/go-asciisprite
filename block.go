@@ -26,12 +26,15 @@ var Blocks = map[int]rune{
 }
 
 var ColorMap = map[rune]tm.Attribute{
-   'R': tm.ColorRed,
-   'b': tm.Attribute(53),
-   't': tm.Attribute(180),
-   'Y': tm.ColorYellow,
-   'N': tm.ColorBlack,
-   'B': tm.ColorBlue,
+	'R': tm.ColorRed,
+	'b': tm.Attribute(53),
+	't': tm.Attribute(180),
+	'Y': tm.ColorYellow,
+	'N': tm.ColorBlack,
+	'B': tm.ColorBlue,
+	'o': tm.Attribute(214),
+	'O': tm.Attribute(208),
+	'w': tm.ColorWhite,
 }
 
 func Convert(s string) Costume {
@@ -53,7 +56,7 @@ func Convert(s string) Costume {
 			if c != ' ' {
 				m[rcnt][ccnt] = c
 			}
-		}	
+		}
 	}
 
 	// make certain we make a row for any added space
@@ -97,19 +100,23 @@ func Convert(s string) Costume {
 
 
 
-func ColorConvert(s string) Costume {
+func ColorConvert(s string, bg tm.Attribute) Costume {
 	blocks := []*Block{}
 	l := strings.Split(s, "\n")
-	maxR := len(l) + len(l)%2
 
-	// all block sprites must be even
+	// create an even number of rows
+	maxR := len(l) + len(l)%2
 	m := make([][]rune, maxR, maxR)
 
+	// iterate through the rows and figure out how wide all of the
+	// columns will be
 	var maxC int
 	for _, r := range l {
 		maxC = max(maxC, len(r) + len(r)%2)
 	}
 
+	// iterate through each row again and create a map of each of
+	// the chars
 	for rcnt, r := range l {
 		m[rcnt] = make([]rune, maxC, maxC)
 		for ccnt, c := range r {
@@ -127,7 +134,7 @@ func ColorConvert(s string) Costume {
 	for rcnt := 0; rcnt < len(m); rcnt+=2 {
 		for ccnt := 0; ccnt < len(m[rcnt]); ccnt+=2 {
 			var fg tm.Attribute
-			var bg tm.Attribute
+			obg := bg
 
 			runes := []rune{
 				m[rcnt][ccnt],
@@ -137,11 +144,10 @@ func ColorConvert(s string) Costume {
 			}
 
 			for _, b := range runes {
-				if b > 0 && fg == 0{
+				if b > 0 && fg == 0 {
 					fg = ColorMap[b]
-					continue
-				} else if ColorMap[b] != fg {
-					bg = ColorMap[b]
+				} else if b != 0 && ColorMap[b] != fg {
+					obg = ColorMap[b]
 				}
 			}
 
@@ -162,7 +168,7 @@ func ColorConvert(s string) Costume {
 				X:    ccnt/2,
 				Y:    rcnt/2,
 				Fg:   tm.Attribute(fg),
-				Bg:   tm.Attribute(bg),
+				Bg:   tm.Attribute(obg),
 			}
 			blocks = append(blocks, blk)
 		}
