@@ -44,7 +44,7 @@ bbbb    bbbb`
 
 const mario_walk1 = `     RRRRR
     RRRRRRRRR
-   bbbbttNt
+    bbbttNt
    btbtttNttt
    btbbtttNttt
    bbttttNNNN
@@ -109,7 +109,7 @@ const mario_turnaround = `     RRRRR
  b bBBbbbB
  bbbbbB
   bbbb`
-   
+
 
 const mario_jump = `             ttt
       RRRRR  ttt
@@ -127,7 +127,93 @@ ttt BBRBBYBBBBbb
   bbbBBBBBBBBBbb
  bbbBBBBBBB
  b  BBBB`
- 
+
+
+const question_block = ` OOOOOOOOOOOOOO
+OooooooooooooooN
+OoNooooooooooNoN
+OooooOOOOOoooooN
+OoooOONNNOOooooN
+OoooOONooOONoooN
+OoooOONooOONoooN
+OooooNNoOOONoooN
+OooooooOONNNoooN
+OooooooOONoooooN
+OoooooooNNoooooN
+OooooooOOooooooN
+OooooooOONoooooN
+OoNoooooNNoooNoN
+OooooooooooooooN
+NNNNNNNNNNNNNNNN`
+
+const brick_block = `wwwwwwwwwwwwwwww
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+NNNNNNNNNNNNNNNN
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+NNNNNNNNNNNNNNNN
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+NNNNNNNNNNNNNNNN
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+NNNNNNNNNNNNNNNN`
+
+const used_block = `NNNNNNNNNNNNNNNN
+NOOOOOOOOOOOOOON
+NONOOOOOOOOOONON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NONOOOOOOOOOONON
+NOOOOOOOOOOOOOON
+NNNNNNNNNNNNNNNN`
+
+const ground_block = `OwwwwwwwwNOwwwwO
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+wOOOOOOOONwNOOON
+wOOOOOOOONONNNNO
+wOOOOOOOONwwwwwN
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+NNOOOOOONwOOOOON
+wwNNOOOONwOOOOON
+wOwwNNNNwOOOOOON
+wOOOwwwNwOOOOOON
+wOOOOOONwOOOOONN
+ONNNNNNOwNNNNNNO`
+
+const metal_block = `OwwwwwwwwwwwwwwN
+wOwwwwwwwwwwwwNN
+wwOwwwwwwwwwwNNN
+wwwOwwwwwwwwNNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwNNNNNNNNNONNN
+wwNNNNNNNNNNNONN
+wNNNNNNNNNNNNNON
+NNNNNNNNNNNNNNNO`
+
 
 type MarioState int
 
@@ -135,6 +221,12 @@ const (
 	Walking MarioState = iota
 	Jumping
 )
+
+type Block struct {
+	sprite.BaseSprite
+}
+
+
 
 type Mario struct {
 	sprite.BaseSprite
@@ -157,26 +249,20 @@ func (s *Mario) Update() {
 func (s *Mario) Jump() {
 	s.State = Jumping
 	s.Costumes = []*sprite.Costume{}
-	s.AddCostume(sprite.ColorConvert(mario_jump))
+	s.AddCostume(sprite.ColorConvert(mario_jump, tm.Attribute(39)))
 }
 
 func (s *Mario) Walk() {
 	s.State = Walking
 	s.Costumes = []*sprite.Costume{}
 	//s.AddCostume(sprite.ColorConvert(mario_turnaround))
-	s.AddCostume(sprite.ColorConvert(mario_walk1))
-	s.AddCostume(sprite.ColorConvert(mario_walk2))
-	s.AddCostume(sprite.ColorConvert(mario_walk3))
-	s.AddCostume(sprite.ColorConvert(mario_walk2))
+	bg := tm.Attribute(39)
+	s.AddCostume(sprite.ColorConvert(mario_walk1, bg))
+	s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
+	s.AddCostume(sprite.ColorConvert(mario_walk3, bg))
+	s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
 }
 
-
-/*
-func (s *Mario) Reverse() {
-	for _, c := range s.Costumes {
-	}
-}
-*/
 
 func main() {
         // XXX - Wait a bit until the terminal is properly initialized
@@ -198,18 +284,23 @@ func main() {
                 }
         }()
 
+	bg := tm.Attribute(39)
+
 	m := &Mario{BaseSprite: sprite.BaseSprite{
-		Visible: true},
+		Visible: true,
+		X:       20,
+	        Y:       8*8},
 		TimeOut: 2,
 	}
-	//m.AddCostume(sprite.ColorConvert(mario))
 	m.Walk()
 	allSprites.Sprites = append(allSprites.Sprites, m)
 
+	ParseLevel(level1, bg)
+
+
 mainloop:
         for {
-                tm.Clear(tm.ColorDefault, tm.ColorDefault)
-		//tm.Clear(tm.ColorBlack, tm.ColorWhite)
+                tm.Clear(tm.ColorDefault, bg)
 
                 select {
                 case ev := <-event_queue:
