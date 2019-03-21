@@ -20,3 +20,8 @@ type Rect struct {
 	W int
 	H int
 }
+
+type Point struct {
+	X int
+	Y int
+}
