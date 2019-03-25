@@ -15,12 +15,12 @@ const level1 = `
 
 
 
-                 ?   b?b?b
-
- 789
-78889       12223789    123
-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG`
+                 ?   b?b?b                      oO         oO
+  0                                     oO      pP  0      pP
+ 7*9              0           oO        pP      pP 7*9     pP      0
+7*8*9       122237*9    123   pP        pP 1223 pP7*8*9    pP122237*9    123
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGG`
 
 const cloud_topleft = `
 
@@ -130,6 +130,23 @@ gggggggggggggN
 ggggggggggggggN
 gggggggggggggggN`
 
+const shrub_top = `
+
+
+
+
+
+
+
+
+
+
+
+
+     NNNNNN
+  NNNggggggNNN
+NNggggggggggggNN`
+
 const shrub_greenblock = `gggggggggggggggg
 gggggggggggggggg
 gggggggggggggggg
@@ -146,6 +163,91 @@ gggggggggggggggg
 gggggggggggggggg
 gggggggggggggggg
 gggggggggggggggg`
+
+const shrub_specks = `gggggggggggggNgg
+ggggggggggggNNNg
+ggggggggggggNNNg
+ggggggggggggNNNg
+ggggggggggggNNNg
+gggggggggNNggNgg
+gggggggggNNggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg`
+
+const pipe_topleft = `NNNNNNNNNNNNNNNN
+Nggggggggggggggg
+NGGGGGggggggGGGG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NgggGGggggggGggG
+NNNNNNNNNNNNNNNN
+  NNNNNNNNNNNNNN`
+
+const pipe_topright = `NNNNNNNNNNNNNNNN
+gggggggggggggggN
+GGGGGGGGGGGGGGGN
+GGGGGGGGGgGgGggN
+GGGGGGGGGGgGgggN
+GGGGGGGGGgGgGggN
+GGGGGGGGGGgGgggN
+GGGGGGGGGgGgGggN
+GGGGGGGGGGgGgggN
+GGGGGGGGGgGgGggN
+GGGGGGGGGGgGgggN
+GGGGGGGGGgGgGggN
+GGGGGGGGGGgGgggN
+GGGGGGGGGgGgGggN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNN`
+
+const pipe_left = `  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg
+  NgggGGgggggGgg`
+
+const pipe_right = `GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN
+GGGGGGGGgGgggN
+GGGGGGGGGgGggN`
 
 func ParseLevel(l string, bg tm.Attribute) {
 
@@ -182,8 +284,20 @@ func ParseLevel(l string, bg tm.Attribute) {
 				b.AddCostume(sprite.ColorConvert(shrub_leftramp, bg))
 			case '8':
 				b.AddCostume(sprite.ColorConvert(shrub_greenblock, bg))
+			case '*':
+				b.AddCostume(sprite.ColorConvert(shrub_specks, bg))
 			case '9':
 				b.AddCostume(sprite.ColorConvert(shrub_rightramp, bg))
+			case '0':
+				b.AddCostume(sprite.ColorConvert(shrub_top, bg))
+			case 'p':
+				b.AddCostume(sprite.ColorConvert(pipe_left, bg))
+			case 'P':
+				b.AddCostume(sprite.ColorConvert(pipe_right, bg))
+			case 'o':
+				b.AddCostume(sprite.ColorConvert(pipe_topleft, bg))
+			case 'O':
+				b.AddCostume(sprite.ColorConvert(pipe_topright, bg))
 			}
 			allSprites.Sprites = append(allSprites.Sprites, b)
 		}
