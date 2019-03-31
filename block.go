@@ -32,10 +32,11 @@ var ColorMap = map[rune]tm.Attribute{
 	'Y': tm.ColorYellow,
 	'N': tm.ColorBlack,
 	'B': tm.ColorBlue,
-	'o': tm.Attribute(214),
-	'O': tm.Attribute(208),
+	'o': tm.Attribute(209),
+	'O': tm.Attribute(167),
 	'w': tm.ColorWhite,
 	'g': tm.ColorGreen,
+	'G': tm.Attribute(35),
 }
 
 func Convert(s string) Costume {
