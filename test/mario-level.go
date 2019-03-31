@@ -8,19 +8,19 @@ import (
 )
 
 const level1 = `
-                    123
-        123         456     12223
-        456                 45556
-                       ?
-
-
-
-                 ?   b?b?b                      oO         oO
-  0                                     oO      pP  0      pP
- 7*9              0           oO        pP      pP 7*9     pP      0
-7*8*9       122237*9    123   pP        pP 1223 pP7*8*9    pP122237*9    123
-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGG
-GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGG`
+                    123               1223                           123                                            123              1223                           123              1223              F
+        123         456     12223     4556                123        456                                 123        456     12223    4556                123        456     12223    4556              f 123
+        456                 45556                         456                                            456                45556                        456                45556                      f 456
+                       ?                                                          bbbbbbbb   bbb?             ?           bbb    b??b                                                        mm        f
+                                                                                                                                                                                            mmm        f
+                                                                                                                                                                                           mmmm        f
+                                                                                                                                                                                          mmmmm        f    ccc
+                 ?   b?b?b                      oO         oO                  b?b              b     bb   ?  ?  ?     b          bb      m  m          mm  m            bb?b            mmmmmm        f    wbW
+  0                                     oO      pP  0      pP                                       0                                    mm  mm    0   mmm  mm                          mmmmmmm    0   f   cCCCc
+ 7*9     h        0           oO        pP      pP 7*9     pP      0                               7*9            0                     mmm  mmm  7*9 mmmm  mmm   0 oO              oO mmmmmmmm   7*9  f   bbDbb  0
+7*8*9   H   !@@@#7*9    !@#   pP        pP !@@# pP7*8*9    pP!@@@#7*9    !@#               !@@#   7*8*9     !@@@#7*9                   mmmm@@mmmm7*8*mmmmm  mmmm#7*9pP  !@#         pPmmmmmmmmm  7*8*9 m   bbNbb#7*9    !@#
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGGG   GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGGG   GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG  GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG`
 
 const cloud_topleft = `
 
@@ -52,7 +52,7 @@ const cloud_topmiddle = `       NNNN
   NwwwwwwwwwNwN
   NwwwwwwbwwwwwN
  NwwwbbwwwbwwwwN
-NwwwbwwwwwwwwwwN 
+NwwwbwwwwwwwwwwN
 wwwwwwwwwwwwwwww
 wwwwwwwwwwwwwwww
 wwwwwwwwwwwwwwww
@@ -96,39 +96,90 @@ wwwwwNN
 NwwNN
  NN`
 
-const shrub_leftramp = `               N
-              Ng
-             Ngg
+const cloudshrub_topleft = `
+
+
+
+
+
+
+
+             NNN
             Nggg
            Ngggg
           Nggggg
-         Ngggggg
+         NNggggg
         Nggggggg
-       Ngggggggg
-      Nggggggggg
-     Ngggggggggg
-    Nggggggggggg
-   Ngggggggggggg
-  Nggggggggggggg
- Ngggggggggggggg
-Nggggggggggggggg`
+        Nggggggg
+         Ngggggg`
+
+const cloudshrub_topmiddle = `       NNNN
+     NggggN
+   NNggggggN
+  NggggggggN N
+  NgggggggggNgN
+  NggggggbgggggN
+ NgggbbgggbggggN
+NgggbggggggggggN
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg`
+
+const cloudshrub_topright = `
+
+
+
+
+
+
+
+N  N
+N NgN
+gNggN
+ggggN N
+gggggNgN
+gggggggN
+gggggggN
+ggggggNN`
+
+const shrub_leftramp = `               N
+              NG
+             NGG
+            NGGG
+           NGGGG
+          NGGGGG
+         NGGGGGG
+        NGGGGGGG
+       NGGGGGGGG
+      NGGGGGGGGG
+     NGGGGGGGGGG
+    NGGGGGGGGGGG
+   NGGGGGGGGGGGG
+  NGGGGGGGGGGGGG
+ NGGGGGGGGGGGGGG
+NGGGGGGGGGGGGGGG`
 
 const shrub_rightramp = `N
-gN
-ggN
-gggN
-ggggN
-gggggN
-ggggggN
-gggggggN
-ggggggggN
-gggggggggN
-ggggggggggN
-gggggggggggN
-ggggggggggggN
-gggggggggggggN
-ggggggggggggggN
-gggggggggggggggN`
+GN
+GGN
+GGGN
+GGGGN
+GGGGGN
+GGGGGGN
+GGGGGGGN
+GGGGGGGGN
+GGGGGGGGGN
+GGGGGGGGGGN
+GGGGGGGGGGGN
+GGGGGGGGGGGGN
+GGGGGGGGGGGGGN
+GGGGGGGGGGGGGGN
+GGGGGGGGGGGGGGGN`
 
 const shrub_top = `
 
@@ -144,42 +195,42 @@ const shrub_top = `
 
 
      NNNNNN
-  NNNggggggNNN
-NNggggggggggggNN`
+  NNNGGGGGGNNN
+NNGGGGGGGGGGGGNN`
 
-const shrub_greenblock = `gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg`
+const shrub_greenblock = `GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG`
 
-const shrub_specks = `gggggggggggggNgg
-ggggggggggggNNNg
-ggggggggggggNNNg
-ggggggggggggNNNg
-ggggggggggggNNNg
-gggggggggNNggNgg
-gggggggggNNggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg
-gggggggggggggggg`
+const shrub_specks = `GGGGGGGGGGGGGNGG
+GGGGGGGGGGGGNNNG
+GGGGGGGGGGGGNNNG
+GGGGGGGGGGGGNNNG
+GGGGGGGGGGGGNNNG
+GGGGGGGGGNNGGNGG
+GGGGGGGGGNNGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG
+GGGGGGGGGGGGGGGG`
 
 const pipe_topleft = `NNNNNNNNNNNNNNNN
 Nggggggggggggggg
@@ -249,7 +300,196 @@ GGGGGGGGGgGggN
 GGGGGGGGgGgggN
 GGGGGGGGGgGggN`
 
-func ParseLevel(l string, bg tm.Attribute) {
+const question_block = ` OOOOOOOOOOOOOO
+OooooooooooooooN
+OoNooooooooooNoN
+OooooOOOOOoooooN
+OoooOONNNOOooooN
+OoooOONooOONoooN
+OoooOONooOONoooN
+OooooNNoOOONoooN
+OooooooOONNNoooN
+OooooooOONoooooN
+OoooooooNNoooooN
+OooooooOOooooooN
+OooooooOONoooooN
+OoNoooooNNoooNoN
+OooooooooooooooN
+NNNNNNNNNNNNNNNN`
+
+const brick_block = `wwwwwwwwwwwwwwww
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+NNNNNNNNNNNNNNNN
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+NNNNNNNNNNNNNNNN
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+NNNNNNNNNNNNNNNN
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+NNNNNNNNNNNNNNNN`
+
+const used_block = `NNNNNNNNNNNNNNNN
+NOOOOOOOOOOOOOON
+NONOOOOOOOOOONON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NOOOOOOOOOOOOOON
+NONOOOOOOOOOONON
+NOOOOOOOOOOOOOON
+NNNNNNNNNNNNNNNN`
+
+const ground_block = `OwwwwwwwwNOwwwwO
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+wOOOOOOOONwNOOON
+wOOOOOOOONONNNNO
+wOOOOOOOONwwwwwN
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+wOOOOOOOONwOOOON
+NNOOOOOONwOOOOON
+wwNNOOOONwOOOOON
+wOwwNNNNwOOOOOON
+wOOOwwwNwOOOOOON
+wOOOOOONwOOOOONN
+ONNNNNNOwNNNNNNO`
+
+const metal_block = `OwwwwwwwwwwwwwwN
+wOwwwwwwwwwwwwNN
+wwOwwwwwwwwwwNNN
+wwwOwwwwwwwwNNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwwOOOOOOOONNNN
+wwwNNNNNNNNNONNN
+wwNNNNNNNNNNNONN
+wNNNNNNNNNNNNNON
+NNNNNNNNNNNNNNNO`
+
+const castle_opening = `OOOOONNNNNNOOOON
+OOONNNNNNNNNNOON
+OONNNNNNNNNNNNON
+NNNNNNNNNNNNNNNN
+ONNNNNNNNNNNNNNO
+ONNNNNNNNNNNNNNO
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN`
+
+const castle_crenulation_open = `wwww       wwwww
+OOOw       wOOOO
+OOOw       wOOOO
+OOOw       wOOOO
+OOOw       wOOOO
+OOOw       wOOOO
+OOOw       wOOOO
+NNNwwwwwwwwwNNNN
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+NNNNNNNNNNNNNNNN
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+NNNNNNNNNNNNNNNN`
+
+const castle_crenulation_closed = `wwwwOOONOOOwwwww
+OOOwOOONOOOwOOOO
+OOOwOOONOOOwOOOO
+OOOwNNNNNNNwOOOO
+OOOwOOOOOOOwOOOO
+OOOwOOOOOOOwOOOO
+OOOwOOOOOOOwOOOO
+NNNwwwwwwwwwNNNN
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+OOOOOOONOOOOOOON
+NNNNNNNNNNNNNNNN
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+OOONOOOOOOONOOOO
+NNNNNNNNNNNNNNNN`
+
+const castle_blackblock = `NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN
+NNNNNNNNNNNNNNNN`
+
+const castle_window_right = `OOOOOOONNNNNNNNN
+OOOOOOONNNNNNNNN
+OOOOOOONNNNNNNNN
+NNNNNNNNNNNNNNNN
+OOONOOOONNNNNNNN
+OOONOOOONNNNNNNN
+OOONOOOONNNNNNNN
+NNNNNNNNNNNNNNNN
+OOOOOOONNNNNNNNN
+OOOOOOONNNNNNNNN
+OOOOOOONNNNNNNNN
+NNNNNNNNNNNNNNNN
+OOONOOOONNNNNNNN
+OOONOOOONNNNNNNN
+OOONOOOONNNNNNNN
+NNNNNNNNNNNNNNNN`
+
+const castle_window_left = `NNNNNNNNOOOOOOON
+NNNNNNNNOOOOOOON
+NNNNNNNNOOOOOOON
+NNNNNNNNNNNNNNNN
+NNNNNNNNOOONOOOO
+NNNNNNNNOOONOOOO
+NNNNNNNNOOONOOOO
+NNNNNNNNNNNNNNNN
+NNNNNNNNOOOOOOON
+NNNNNNNNOOOOOOON
+NNNNNNNNOOOOOOON
+NNNNNNNNNNNNNNNN
+NNNNNNNNOOONOOOO
+NNNNNNNNOOONOOOO
+NNNNNNNNOOONOOOO
+NNNNNNNNNNNNNNNN`
+
+func ParseLevel(l string, bg tm.Attribute) []*Block {
+
+	allBlocks := []*Block{}
 
 	for rcnt, row := range strings.Split(l, "\n") {
 		for ccnt, blk := range row {
@@ -266,8 +506,30 @@ func ParseLevel(l string, bg tm.Attribute) {
 				b.AddCostume(sprite.ColorConvert(question_block, bg))
 			case 'b':
 				b.AddCostume(sprite.ColorConvert(brick_block, bg))
+			case 'c':
+				b.AddCostume(sprite.ColorConvert(castle_crenulation_open, bg))
+			case 'C':
+				b.AddCostume(sprite.ColorConvert(castle_crenulation_closed, bg))
+			case 'D':
+				b.AddCostume(sprite.ColorConvert(castle_opening, bg))
+			case 'm':
+				b.AddCostume(sprite.ColorConvert(metal_block, bg))
+			case 'N':
+				b.AddCostume(sprite.ColorConvert(castle_blackblock, bg))
+			case 'f':
+				b.AddCostume(sprite.ColorConvert(flagpole, bg))
+			case 'F':
+				b.AddCostume(sprite.ColorConvert(flagpole_top, bg))
 			case 'G':
 				b.AddCostume(sprite.ColorConvert(ground_block, bg))
+			case 'h':
+				b.AddCostume(sprite.ColorConvert(koopa_walk1, bg))
+			case 'H':
+				b.AddCostume(sprite.ColorConvert(goomba_walk1, bg))
+			case 'w':
+				b.AddCostume(sprite.ColorConvert(castle_window_right, bg))
+			case 'W':
+				b.AddCostume(sprite.ColorConvert(castle_window_left, bg))
 			case '1':
 				b.AddCostume(sprite.ColorConvert(cloud_topleft, bg))
 			case '2':
@@ -290,6 +552,12 @@ func ParseLevel(l string, bg tm.Attribute) {
 				b.AddCostume(sprite.ColorConvert(shrub_rightramp, bg))
 			case '0':
 				b.AddCostume(sprite.ColorConvert(shrub_top, bg))
+			case '!':
+				b.AddCostume(sprite.ColorConvert(cloudshrub_topleft, bg))
+			case '@':
+				b.AddCostume(sprite.ColorConvert(cloudshrub_topmiddle, bg))
+			case '#':
+				b.AddCostume(sprite.ColorConvert(cloudshrub_topright, bg))
 			case 'p':
 				b.AddCostume(sprite.ColorConvert(pipe_left, bg))
 			case 'P':
@@ -300,6 +568,8 @@ func ParseLevel(l string, bg tm.Attribute) {
 				b.AddCostume(sprite.ColorConvert(pipe_topright, bg))
 			}
 			allSprites.Sprites = append(allSprites.Sprites, b)
+			allBlocks = append(allBlocks, b)
 		}
 	}
+	return allBlocks
 }

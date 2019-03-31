@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
         "time"
 
         sprite "github.com/pdevine/go-asciisprite"
@@ -9,6 +10,7 @@ import (
 )
 
 var allSprites sprite.SpriteGroup
+var allBlocks []*Block
 var Width int
 var Height int
 
@@ -128,114 +130,141 @@ ttt BBRBBYBBBBbb
  bbbBBBBBBB
  b  BBBB`
 
+const mushroom = `      oooo
+     ooooOO
+    ooooOOOO
+   oooooOOOOO
+  oooooooOOOoo
+ ooOOOooooooooo
+ oOOOOOoooooooo
+ooOOOOOoooooOOoo
+ooOOOOOoooooOOOo
+oooOOOoooooooOOo
+oooooooooooooooo
+ oOOOwwwwwwOOOo
+    wwwwwwww
+    wwwwwwow
+    wwwwwwow
+     wwwwow`
 
-const question_block = ` OOOOOOOOOOOOOO
-OooooooooooooooN
-OoNooooooooooNoN
-OooooOOOOOoooooN
-OoooOONNNOOooooN
-OoooOONooOONoooN
-OoooOONooOONoooN
-OooooNNoOOONoooN
-OooooooOONNNoooN
-OooooooOONoooooN
-OoooooooNNoooooN
-OooooooOOooooooN
-OooooooOONoooooN
-OoNoooooNNoooNoN
-OooooooooooooooN
-NNNNNNNNNNNNNNNN`
+const star = `       oo
+      oooo
+      oooo
+     oooooo
+ oooooooooooooo
+ oooooOooOooooo
+  ooooOooOoooo
+   oooOooOooo
+    oooooooo
+    oooooooo
+   oooooooooo
+   oooooooooo
+   oooo  oooo
+  ooo      ooo
+  oo        oo`
 
-const brick_block = `wwwwwwwwwwwwwwww
-OOOOOOONOOOOOOON
-OOOOOOONOOOOOOON
-NNNNNNNNNNNNNNNN
-OOONOOOOOOONOOOO
-OOONOOOOOOONOOOO
-OOONOOOOOOONOOOO
-NNNNNNNNNNNNNNNN
-OOOOOOONOOOOOOON
-OOOOOOONOOOOOOON
-OOOOOOONOOOOOOON
-NNNNNNNNNNNNNNNN
-OOONOOOOOOONOOOO
-OOONOOOOOOONOOOO
-OOONOOOOOOONOOOO
-NNNNNNNNNNNNNNNN`
+const flag = `
+wwwwwwwwwwwwwwww
+ wwwwwwwwGGGGGww
+  wwwwwwGGwGwGGw
+   wwwwwGwwGwwGw
+    wwwwGwGGGwGw
+     wwwGGGwGGGw
+      wwGGGGGGGw
+       wwwGGGwww
+        wwwwwwww
+         wwwwwww
+          wwwwww
+           wwwww
+            wwww
+             www
+              ww
+               w`
 
-const used_block = `NNNNNNNNNNNNNNNN
-NOOOOOOOOOOOOOON
-NONOOOOOOOOOONON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NOOOOOOOOOOOOOON
-NONOOOOOOOOOONON
-NOOOOOOOOOOOOOON
-NNNNNNNNNNNNNNNN`
+const flagpole_top = `
 
-const ground_block = `OwwwwwwwwNOwwwwO
-wOOOOOOOONwOOOON
-wOOOOOOOONwOOOON
-wOOOOOOOONwOOOON
-wOOOOOOOONwNOOON
-wOOOOOOOONONNNNO
-wOOOOOOOONwwwwwN
-wOOOOOOOONwOOOON
-wOOOOOOOONwOOOON
-wOOOOOOOONwOOOON
-NNOOOOOONwOOOOON
-wwNNOOOONwOOOOON
-wOwwNNNNwOOOOOON
-wOOOwwwNwOOOOOON
-wOOOOOONwOOOOONN
-ONNNNNNOwNNNNNNO`
 
-const metal_block = `OwwwwwwwwwwwwwwN
-wOwwwwwwwwwwwwNN
-wwOwwwwwwwwwwNNN
-wwwOwwwwwwwwNNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwwOOOOOOOONNNN
-wwwNNNNNNNNNONNN
-wwNNNNNNNNNNNONN
-wNNNNNNNNNNNNNON
-NNNNNNNNNNNNNNNO`
+
+
+
+
+
+      NNNN
+     NgGGGN
+    NgGGGGGN
+    NgGGGGGN
+    NGGGGGGN
+    NGGGGGGN
+     NGGGGN
+      NNNN`
+
+const flagpole = `      gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg
+       gg`
+
 
 
 type MarioState int
 
 const (
-	Walking MarioState = iota
+	Standing MarioState = iota
+	Walking
 	Jumping
 )
+
+const FacingLeft = -1
+const FacingRight = 1
 
 type Block struct {
 	sprite.BaseSprite
 }
 
-
-
 type Mario struct {
 	sprite.BaseSprite
-	Timer   int
-	TimeOut int
-	State   MarioState
+	AX        float64
+        VX        float64
+	Timer     int
+	TimeOut   int
+	State     MarioState
+	Direction int
+}
+
+func InitMario() *Mario {
+	m := &Mario{BaseSprite: sprite.BaseSprite{
+		Visible: true,
+		X:       20,
+	        Y:       11*8},
+		Direction: FacingRight,
+		TimeOut:   2,
+	}
+	return m
 }
 
 func (s *Mario) Update() {
+	s.VX = s.VX + s.AX
+	s.AX = 0
+	s.VX *= 0.85		// apply friction
+	s.X += int(math.Round(s.VX))
+	if s.X >= Width/2 {
+		s.X = Width/2
+		for _, blk := range allBlocks {
+			blk.X += -int(math.Round(s.VX))
+		}
+	}
+
 	s.Timer++
 	if s.Timer > s.TimeOut {
 		s.CurrentCostume++
@@ -263,6 +292,15 @@ func (s *Mario) Walk() {
 	s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
 }
 
+func (s *Mario) MoveRight() {
+	s.AX = 5
+	s.VX = 0
+}
+
+func (s *Mario) MoveLeft() {
+	s.AX = -5
+	s.VX = 0
+}
 
 func main() {
         // XXX - Wait a bit until the terminal is properly initialized
@@ -284,18 +322,13 @@ func main() {
                 }
         }()
 
-	bg := tm.Attribute(39)
+	bg := tm.Attribute(40)
 
-	m := &Mario{BaseSprite: sprite.BaseSprite{
-		Visible: true,
-		X:       20,
-	        Y:       8*8},
-		TimeOut: 2,
-	}
+	m := InitMario()
 	m.Walk()
-	allSprites.Sprites = append(allSprites.Sprites, m)
 
-	ParseLevel(level1, bg)
+	allBlocks = ParseLevel(level1, bg)
+	allSprites.Sprites = append(allSprites.Sprites, m)
 
 
 mainloop:
@@ -308,6 +341,11 @@ mainloop:
                                 if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
                                         break mainloop
                                 }
+				if ev.Key == tm.KeyArrowRight {
+					m.MoveRight()
+				} else if ev.Key == tm.KeyArrowLeft {
+					m.MoveLeft()
+				}
 				if ev.Ch == ' ' {
 					if m.State == Walking {
 						m.Jump()
