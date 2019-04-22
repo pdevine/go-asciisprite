@@ -120,15 +120,19 @@ func (sg *SpriteGroup) Update() {
 
 func (sg *SpriteGroup) Remove(s Sprite) {
 	var idx int
+	var found bool
 	for cnt, tSprite := range sg.Sprites {
 		if s == tSprite {
 			idx = cnt
+			found = true
 			break
 		}
 	}
-	copy(sg.Sprites[idx:], sg.Sprites[idx+1:])
-	sg.Sprites[len(sg.Sprites)-1] = nil
-	sg.Sprites = sg.Sprites[:len(sg.Sprites)-1]
+	if found {
+		copy(sg.Sprites[idx:], sg.Sprites[idx+1:])
+		sg.Sprites[len(sg.Sprites)-1] = nil
+		sg.Sprites = sg.Sprites[:len(sg.Sprites)-1]
+	}
 }
 
 func (sg *SpriteGroup) RemoveAll() {
