@@ -292,7 +292,6 @@ XXX
     `
 
 func BuildString(s string) string {
-
 	c_lookup := map[rune]string{
 		'a': Font_a,
 		'b': Font_b,
@@ -342,6 +341,7 @@ func BuildString(s string) string {
 	for _, c := range s {
 		cs, ok := c_lookup[c]
 		if !ok {
+			// just add in some blank spaces if we don't have a char
 			cs = "  \n  \n  \n  \n  \n  "
 		}
 		t = append(t, strings.Split(cs, "\n"))

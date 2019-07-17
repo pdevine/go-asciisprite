@@ -487,6 +487,41 @@ NNNNNNNNOOONOOOO
 NNNNNNNNOOONOOOO
 NNNNNNNNNNNNNNNN`
 
+type Block struct {
+        sprite.BaseSprite
+}
+
+type QuestionBlock struct {
+	Block
+	Timer   int
+	TimeOut int
+}
+
+func InitQuestionBlock(X, Y int) *QuestionBlock {
+	b := &QuestionBlock{Block: Block{BaseSprite: sprite.BaseSprite{
+			Visible: true,
+			X: X,
+			Y: Y},
+		},
+	}
+	return b
+}
+
+func (b *QuestionBlock) Update() {
+	b.Timer++
+	if b.Timer > b.TimeOut {
+		b.CurrentCostume++
+		if b.CurrentCostume >= len(b.Costumes) {
+			b.CurrentCostume = 0
+		}
+		b.Timer = 0
+	}
+}
+
+type BrickBlock struct {
+	Block
+}
+
 func ParseLevel(l string, bg tm.Attribute) []*Block {
 
 	allBlocks := []*Block{}

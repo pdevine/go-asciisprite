@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"math"
+	"strings"
         "time"
 
         sprite "github.com/pdevine/go-asciisprite"
@@ -13,6 +15,8 @@ var allSprites sprite.SpriteGroup
 var allBlocks []*Block
 var Width int
 var Height int
+
+const BackgroundColor = 40
 
 const big_mario = `
       RRRRR
@@ -228,10 +232,6 @@ const (
 const FacingLeft = -1
 const FacingRight = 1
 
-type Block struct {
-	sprite.BaseSprite
-}
-
 type Mario struct {
 	sprite.BaseSprite
 	AX        float64
@@ -278,28 +278,54 @@ func (s *Mario) Update() {
 func (s *Mario) Jump() {
 	s.State = Jumping
 	s.Costumes = []*sprite.Costume{}
-	s.AddCostume(sprite.ColorConvert(mario_jump, tm.Attribute(39)))
+	s.AddCostume(sprite.ColorConvert(mario_jump, tm.Attribute(BackgroundColor)))
 }
 
-func (s *Mario) Walk() {
-	s.State = Walking
-	s.Costumes = []*sprite.Costume{}
-	//s.AddCostume(sprite.ColorConvert(mario_turnaround))
-	bg := tm.Attribute(39)
-	s.AddCostume(sprite.ColorConvert(mario_walk1, bg))
-	s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
-	s.AddCostume(sprite.ColorConvert(mario_walk3, bg))
-	s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
+func (s *Mario) Walk(Direction int) {
+	if s.State != Walking || s.Direction != Direction {
+		s.State = Walking
+		s.Direction = Direction
+		s.Costumes = []*sprite.Costume{}
+		//s.AddCostume(sprite.ColorConvert(mario_turnaround))
+		bg := tm.Attribute(BackgroundColor)
+		if Direction == FacingRight {
+			s.AddCostume(sprite.ColorConvert(mario_walk1, bg))
+			s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
+			s.AddCostume(sprite.ColorConvert(mario_walk3, bg))
+			s.AddCostume(sprite.ColorConvert(mario_walk2, bg))
+		} else {
+			s.AddCostume(sprite.ColorConvert(reverseCostumeText(mario_walk1), bg))
+			s.AddCostume(sprite.ColorConvert(reverseCostumeText(mario_walk2), bg))
+			s.AddCostume(sprite.ColorConvert(reverseCostumeText(mario_walk3), bg))
+			s.AddCostume(sprite.ColorConvert(reverseCostumeText(mario_walk2), bg))
+		}
+	}
 }
 
 func (s *Mario) MoveRight() {
 	s.AX = 5
 	s.VX = 0
+	s.Walk(FacingRight)
 }
 
 func (s *Mario) MoveLeft() {
 	s.AX = -5
 	s.VX = 0
+	s.Walk(FacingLeft)
+}
+
+func reverseCostumeText(s string) string {
+	lines := strings.Split(s, "\n")
+	var fstr string
+
+	for _, l := range lines {
+		chars := []rune(fmt.Sprintf("%-16v", l))
+		for i, j := 0, len(chars)-1; i < j; i, j = i+1, j-1 {
+			chars[i], chars[j] = chars[j], chars[i]
+		}
+		fstr += string(chars) + "\n"
+	}
+	return fstr
 }
 
 func main() {
@@ -322,10 +348,10 @@ func main() {
                 }
         }()
 
-	bg := tm.Attribute(40)
+	bg := tm.Attribute(BackgroundColor)
 
 	m := InitMario()
-	m.Walk()
+	m.Walk(FacingRight)
 
 	allBlocks = ParseLevel(level1, bg)
 	allSprites.Sprites = append(allSprites.Sprites, m)
@@ -350,7 +376,7 @@ mainloop:
 					if m.State == Walking {
 						m.Jump()
 					} else {
-						m.Walk()
+						m.Walk(m.Direction)
 					}
 				}
                         } else if ev.Type == tm.EventResize {
