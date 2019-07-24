@@ -6,6 +6,7 @@ import (
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
+// Block holds a rune at (X,Y).
 type Block struct {
 	Char rune
 	Fg   tm.Attribute
@@ -14,18 +15,21 @@ type Block struct {
 	Y    int
 }
 
+// Costume contains a slice of Block pointers.
 type Costume struct {
 	Blocks []*Block
 	Width  int
 	Height int
 }
 
+// NewCostume provides a new Costume from a string.
 func NewCostume(t string, alpha rune) Costume {
 	c := Costume{}
 	c.ChangeCostume(t, alpha)
 	return c
 }
 
+// ChangeCostume replaces a Costume with a new Costume from a string.
 func (c *Costume) ChangeCostume(t string, alpha rune) {
 	c.Blocks = []*Block{}
 	var width int
@@ -49,6 +53,7 @@ func (c *Costume) ChangeCostume(t string, alpha rune) {
 	c.Height = height
 }
 
+// TopEdge returns the Y value of the heighest Block in a Costume.
 func (c *Costume) TopEdge() int {
 	top := c.Blocks[0].Y
 	for _, b := range c.Blocks[1:] {
@@ -57,6 +62,7 @@ func (c *Costume) TopEdge() int {
 	return top
 }
 
+// LeftEdge returns the X value of the furthest left Block in a Costume.
 func (c *Costume) LeftEdge() int {
 	left := c.Blocks[0].X
 	for _, b := range c.Blocks[1:] {
@@ -65,6 +71,7 @@ func (c *Costume) LeftEdge() int {
 	return left
 }
 
+// RightEdge returns the X value of the furthest right Block in a Costume.
 func (c *Costume) RightEdge() int {
 	right := c.Blocks[0].X
 	for _, b := range c.Blocks[1:] {
@@ -73,6 +80,7 @@ func (c *Costume) RightEdge() int {
 	return right
 }
 
+// BottomEdge returns the Y value of the lowest Block in a Costume.
 func (c *Costume) BottomEdge() int {
 	bottom := c.Blocks[0].Y
 	for _, b := range c.Blocks[1:] {
@@ -81,6 +89,7 @@ func (c *Costume) BottomEdge() int {
 	return bottom
 }
 
+// LeftEdgeByRow returns a map of the left most X value in each row of a Costume.
 func (c *Costume) LeftEdgeByRow() map[int]int {
 	t := make(map[int]int)
 	for _, b := range c.Blocks {
@@ -92,6 +101,7 @@ func (c *Costume) LeftEdgeByRow() map[int]int {
 	return t
 }
 
+// RightEdgeByRow returns a map of the right most X value in each row of a Costume.
 func (c *Costume) RightEdgeByRow() map[int]int {
 	t := make(map[int]int)
 	for _, b := range c.Blocks {
@@ -100,6 +110,7 @@ func (c *Costume) RightEdgeByRow() map[int]int {
 	return t
 }
 
+// BottomEdgeByColumn returns a map of the lowest Y value in each column of a Costume.
 func (c *Costume) BottomEdgeByColumn() map[int]int {
 	t := make(map[int]int)
 	for _, b := range c.Blocks {
@@ -108,6 +119,7 @@ func (c *Costume) BottomEdgeByColumn() map[int]int {
 	return t
 }
 
+// TopEdgeByColumn returns a map of the heighest Y value in each column of a Costume.
 func (c *Costume) TopEdgeByColumn() map[int]int {
 	t := make(map[int]int)
 	for _, b := range c.Blocks {

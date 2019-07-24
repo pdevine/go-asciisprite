@@ -14,6 +14,7 @@ func min(x, y int) int {
 	return y
 }
 
+// A Rect provides a rectangle starting at (X,Y) with W width and H height
 type Rect struct {
 	X int
 	Y int
@@ -21,6 +22,7 @@ type Rect struct {
 	H int
 }
 
+// A Point provides a point on the screen at (X,Y)
 type Point struct {
 	X int
 	Y int

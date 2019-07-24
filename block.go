@@ -2,10 +2,10 @@ package sprite
 
 import (
 	"strings"
-	//tm "github.com/gdamore/tcell/termbox"
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
+// Blocks provides a map of bits to Unicode block character runes.
 var Blocks = map[int]rune{
    0: ' ',
    1: '▘',
@@ -25,6 +25,7 @@ var Blocks = map[int]rune{
   15: '█',
 }
 
+// ColorMap provides an interpolation map of characters to termbox colors.
 var ColorMap = map[rune]tm.Attribute{
 	'R': tm.ColorRed,
 	'b': tm.Attribute(53),
@@ -39,6 +40,7 @@ var ColorMap = map[rune]tm.Attribute{
 	'G': tm.Attribute(35),
 }
 
+// Convert interpolates a string into black and white Unicode blocks.
 func Convert(s string) Costume {
 	blocks := []*Block{}
 	l := strings.Split(s, "\n")
@@ -100,8 +102,7 @@ func Convert(s string) Costume {
 	return costume
 }
 
-
-
+// Convert interpolates a string into color Unicode blocks.
 func ColorConvert(s string, bg tm.Attribute) Costume {
 	blocks := []*Block{}
 	l := strings.Split(s, "\n")

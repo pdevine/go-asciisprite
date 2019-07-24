@@ -1,11 +1,11 @@
+// Package sprite provides a framework for creating ASCII and Unicode based animations and games.
 package sprite
 
 import (
-	//"fmt"
-	//tm "github.com/gdamore/tcell/termbox"
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
+// A Sprite interface provides methods for initializing, updating, and rendering sprites.
 type Sprite interface {
 	Init()
 	Update()
@@ -16,6 +16,7 @@ type Sprite interface {
 	PrevCostume()
 }
 
+// A BaseSprite is a 2D sprite primitive.
 type BaseSprite struct {
 	X              int
 	Y              int
@@ -28,10 +29,12 @@ type BaseSprite struct {
 	Dead           bool
 }
 
+// A SpriteGroup is a convenience method for holding groups of sprites.
 type SpriteGroup struct {
 	Sprites []Sprite
 }
 
+// NewBaseSprite creates a new BaseSprite from X and Y coordinates and a costume.
 func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 	s := &BaseSprite{
 		X:              x,
@@ -47,6 +50,7 @@ func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 	return s
 }
 
+// AddCostume adds a costume to a BaseSprite.
 func (s *BaseSprite) AddCostume(costume Costume) {
 	s.Costumes = append(s.Costumes, &costume)
 	if len(s.Costumes) == 1 {
@@ -54,12 +58,15 @@ func (s *BaseSprite) AddCostume(costume Costume) {
 	}
 }
 
+// SetCostume sets the current costume of a BaseSprite.
 func (s *BaseSprite) SetCostume(c int) {
+	// XXX - check for bounds here and return an error
 	s.CurrentCostume = c
 	s.Height = s.Costumes[s.CurrentCostume].Height
 	s.Width = s.Costumes[s.CurrentCostume].Width
 }
 
+// Render draws the sprite to the screen buffer.
 func (s *BaseSprite) Render() {
 	if s.Visible {
 		for _, b := range s.Costumes[s.CurrentCostume].Blocks {
@@ -70,7 +77,9 @@ func (s *BaseSprite) Render() {
 	}
 }
 
+// NextCostume changes a sprite's costume to the next costume.
 func (s *BaseSprite) NextCostume() {
+	// XXX - this should just call SetCostume()
 	s.CurrentCostume++
 	if s.CurrentCostume >= len(s.Costumes) {
 		s.CurrentCostume = 0
@@ -79,6 +88,7 @@ func (s *BaseSprite) NextCostume() {
 	s.Width = s.Costumes[s.CurrentCostume].Width
 }
 
+// PrevCostume changes a sprite's costume to the previous costume.
 func (s *BaseSprite) PrevCostume() {
 	s.CurrentCostume--
 	if s.CurrentCostume < 0 {
@@ -88,14 +98,17 @@ func (s *BaseSprite) PrevCostume() {
 	s.Width = s.Costumes[s.CurrentCostume].Width
 }
 
+// Init provides a hook for initializing a sprite.
 func (s *BaseSprite) Init() {
 	// Init things
 }
 
+// Update provides a hook for updating a sprite during the main loop.
 func (s *BaseSprite) Update() {
 	// Do things
 }
 
+// HitAtPoint reports whether a point on the screen intersects with this sprite.
 func (s *BaseSprite) HitAtPoint(x, y int) bool {
 	c := s.Costumes[s.CurrentCostume]
 	if x >= s.X+c.LeftEdge() && x <= s.X+c.RightEdge() && y >= s.Y+c.TopEdge() && y <= s.Y+c.BottomEdge() {
@@ -104,6 +117,7 @@ func (s *BaseSprite) HitAtPoint(x, y int) bool {
 	return false
 }
 
+// Render draws each sprite in the SpriteGroup to the buffer.
 func (sg *SpriteGroup) Render() {
 	for _, s := range sg.Sprites {
 		s.Render()
@@ -111,13 +125,14 @@ func (sg *SpriteGroup) Render() {
 	tm.Flush()
 }
 
-
+// Update updates each sprite in the SpriteGroup.
 func (sg *SpriteGroup) Update() {
 	for _, s := range sg.Sprites {
 		s.Update()
 	}
 }
 
+// Remove removes a given sprite from the SpriteGroup.
 func (sg *SpriteGroup) Remove(s Sprite) {
 	var idx int
 	var found bool
@@ -135,6 +150,7 @@ func (sg *SpriteGroup) Remove(s Sprite) {
 	}
 }
 
+// RemoveAll removes all sprites from the SpriteGroup.
 func (sg *SpriteGroup) RemoveAll() {
 	sg.Sprites = []Sprite{}
 }

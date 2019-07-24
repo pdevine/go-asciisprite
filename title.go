@@ -86,6 +86,7 @@ type TitleScreen struct {
 	Sprites SpriteGroup
 }
 
+// NewTitleEdge create an edge marker in the TitleScreen.
 func NewTitleEdge(t EdgeType, r Rect) *TitleEdge {
         s := &TitleEdge{BaseSprite: BaseSprite{
                 Visible: true},
@@ -112,6 +113,7 @@ func NewTitleEdge(t EdgeType, r Rect) *TitleEdge {
         return s
 }
 
+// NewTitleArrow creates a TitleArrow in the TitleScreen.
 func NewTitleArrow(t EdgeType, r Rect) *TitleArrow {
         s := &TitleArrow{BaseSprite: BaseSprite{
                 Visible: true},
@@ -138,6 +140,7 @@ func NewTitleArrow(t EdgeType, r Rect) *TitleArrow {
         return s
 }
 
+// Update moves a TitleArrow in a TitleScreen.
 func (s *TitleArrow) Update() {
         s.Angle += 0.25
 
@@ -161,6 +164,7 @@ func (s *TitleArrow) Update() {
 
 }
 
+// InitTitleScreen creates a default TitleScreen.
 func InitTitleScreen(r Rect) *TitleScreen {
 	title := TitleScreen{
 		Sprites: SpriteGroup{},
@@ -195,12 +199,14 @@ func InitTitleScreen(r Rect) *TitleScreen {
 	return &title
 }
 
+// Update updates all of the Sprites in a TitleScreen.
 func (t *TitleScreen) Update() {
 	for _, s := range t.Sprites.Sprites {
 		s.Update()
 	}
 }
 
+// Render renders all of the Sprites in a TitleScreen.
 func (t *TitleScreen) Render() {
 	for _, s := range t.Sprites.Sprites {
 		s.Render()

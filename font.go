@@ -290,7 +290,7 @@ const Font_dash = `
 XXX 
     
     `
-
+// BuildString provides a unicode block string from an ASCII string.
 func BuildString(s string) string {
 	c_lookup := map[rune]string{
 		'a': Font_a,
