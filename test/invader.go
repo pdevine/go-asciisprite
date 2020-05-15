@@ -7,7 +7,6 @@ import (
 	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
-	//tm "github.com/gdamore/tcell/termbox"
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
@@ -530,7 +529,7 @@ func (gs *GameState) createWave() {
 
 	for y := 0; y < 2; y++ {
 		for cnt := 0; cnt < 9; cnt++ {
-	  		i := NewInvader(2)
+			i := NewInvader(2)
 			i.Col = cnt
 			i.X = cnt * 10 + 9
 			i.Y = y * 6 + 25
@@ -690,7 +689,7 @@ func (s *Fighter) MoveRight() {
 		s.AX = 3
 		s.VX = 0
 	}
-} 
+}
 
 func (s *Fighter) Fire() {
 	if s.Exploding || s.Dead {
