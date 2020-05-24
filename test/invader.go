@@ -93,6 +93,7 @@ type Bullet struct {
 type Score struct {
 	sprite.BaseSprite
 	Val int
+	f   *sprite.Font
 }
 
 type Logo struct {
@@ -342,9 +343,10 @@ func (gs *GameState) StartGame() {
 		Visible: true,
 		X:       20,
 		Y:       1},
+		f: sprite.NewPakuFont(),
 	}
 
-	gs.Score.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("%06d", gs.Score.Val))))
+	gs.Score.AddCostume(sprite.Convert(gs.Score.f.BuildString(fmt.Sprintf("%06d", gs.Score.Val))))
 	allSprites.Sprites = append(allSprites.Sprites, gs.Score)
 
 	for i := 0; i < 2; i++ {
@@ -783,7 +785,7 @@ func (s *Bullet) Update() {
 
 func (s *Score) Update() {
 	s.Costumes = nil
-	s.AddCostume(sprite.Convert(sprite.BuildString(fmt.Sprintf("score %06d", s.Val))))
+	s.AddCostume(sprite.Convert(s.f.BuildString(fmt.Sprintf("score %06d", s.Val))))
 }
 
 func (s *Logo) Update() {
