@@ -1,295 +1,326 @@
 package sprite
 
 const Font_a = `
- X  
-X X 
-XXX 
-X X 
-X X `
+ X
+X X
+XXX
+X X
+X X`
 
 const Font_b = `
-XX  
-X X 
-XX  
-X X 
-XX  `
+XX
+X X
+XX
+X X
+XX`
 
-const Font_c = `    
- XX 
-X   
-X   
-X   
- XX `
+const Font_c = `
+ XX
+X
+X
+X
+ XX`
 
 const Font_d = `
-XX  
-X X 
-X X 
-X X 
-XXX `
+XX
+X X
+X X
+X X
+XXX`
 
-const Font_e = `    
-XXX 
-X   
-XX  
-X   
-XXX `
+const Font_e = `
+XXX
+X
+XX
+X
+XXX`
 
 const Font_f = `
-XXX 
-X   
-XX  
-X   
-X   `
+XXX
+X
+XX
+X
+X`
 
-const Font_g = `    
- XX 
-X   
-X   
-X X 
-XXX `
+const Font_g = `
+ XX
+X
+X
+X X
+XXX`
 
-const Font_h = `    
-X X 
-X X 
-XXX 
-X X 
-X X `
+const Font_h = `
+X X
+X X
+XXX
+X X
+X X`
 
-const Font_i = `    
-XXX 
- X  
- X  
- X  
-XXX `
+const Font_i = `
+XXX
+ X
+ X
+ X
+XXX`
 
-const Font_j = `    
-XXX 
- X  
- X  
- X  
-XX  `
+const Font_j = `
+XXX
+ X
+ X
+ X
+XX`
 
-const Font_k = `    
-X X 
-X X 
-XX  
-X X 
-X X `
+const Font_k = `
+X X
+X X
+XX
+X X
+X X`
 
-const Font_l = `    
-X   
-X   
-X   
-X   
-XXX `
+const Font_l = `
+X
+X
+X
+X
+XXX`
 
-const Font_m = `      
-XXX 
-XXX 
-X X 
-X X 
-X X `
+const Font_m = `
+X X
+XXX
+XXX
+X X
+X X`
 
-const Font_n = `      
-XX  
-X X 
-X X 
-X X 
-X X `
+const Font_n = `
+XX
+X X
+X X
+X X
+X X`
 
-const Font_o = `    
- XX 
-X X 
-X X 
-X X 
-XX  `
+const Font_o = `
+ XX
+X X
+X X
+X X
+XX`
 
-const Font_p = `    
-XX  
-X X 
-XX  
-X   
-X   `
+const Font_p = `
+XX
+X X
+XX
+X
+X`
 
-const Font_q = `    
- XX 
-X X 
-X X 
-XXX 
-  X `
+const Font_q = `
+ XX
+X X
+X X
+XXX
+  X`
 
-const Font_r = `    
-XX  
-X X 
-XX  
-X X 
-X X `
+const Font_r = `
+XX
+X X
+XX
+X X
+X X`
 
-const Font_s = `    
- XX 
-X   
-XXX 
-  X 
-XX  `
+const Font_s = `
+ XX
+X
+XXX
+  X
+XX`
 
-const Font_t = `    
-XXX 
- X  
- X  
- X  
- X  `
+const Font_t = `
+XXX
+ X
+ X
+ X
+ X`
 
-const Font_u = `    
-X X 
-X X 
-X X 
-X X 
- XX `
+const Font_u = `
+X X
+X X
+X X
+X X
+ XX`
 
-const Font_v = `    
-X X 
-X X 
-X X 
-X X 
- X  `
+const Font_v = `
+X X
+X X
+X X
+X X
+ X`
 
-const Font_w = `    
-X X 
-X X 
-X X 
-XXX 
-XXX `
+const Font_w = `
+X X
+X X
+XXX
+XXX
+X X`
 
-const Font_x = `    
-X X 
-X X 
- X  
-X X 
-X X `
+const Font_x = `
+X X
+X X
+ X
+X X
+X X`
 
-const Font_y = `    
-X X 
-X X 
-XXX 
-  X 
-XXX `
+const Font_y = `
+X X
+X X
+XXX
+  X
+XXX`
 
-const Font_z = `    
-XXX 
-  X 
- X  
-X   
-XXX `
+const Font_z = `
+XXX
+  X
+ X
+X
+XXX`
 
-const Font_0 = `    
- XX 
-X X 
-X X 
-X X 
-XX  `
+const Font_0 = `
+ XX
+X X
+X X
+X X
+XX`
 
-const Font_1 = `    
- X  
-XX  
- X  
- X  
-XXX `
+const Font_1 = `
+ X
+XX
+ X
+ X
+XXX`
 
-const Font_2 = `    
-XX  
-  X 
-XXX 
-X   
-XXX `
+const Font_2 = `
+XX
+  X
+XXX
+X
+XXX`
 
-const Font_3 = `    
-XX  
-  X 
-XX  
-  X 
-XXX `
+const Font_3 = `
+XX
+  X
+XX
+  X
+XXX`
 
-const Font_4 = `    
-X X 
-X X 
-XXX 
-  X 
-  X `
+const Font_4 = `
+X X
+X X
+XXX
+  X
+  X`
 
-const Font_5 = `    
-XXX 
-X   
-XXX 
-  X 
-XX  `
+const Font_5 = `
+XXX
+X
+XXX
+  X
+XX`
 
-const Font_6 = `    
- XX 
-X   
-XXX 
-X X 
-XX  `
+const Font_6 = `
+ XX
+X
+XXX
+X X
+XX`
 
-const Font_7 = `    
-XXX 
-  X 
- X  
-X   
-X   `
+const Font_7 = `
+XXX
+  X
+ X
+X
+X`
 
-const Font_8 = `    
- XX 
-X X 
-XXX 
-X X 
-XX  `
+const Font_8 = `
+ XX
+X X
+XXX
+X X
+XX`
 
-const Font_9 = `    
- XX 
-X X 
-XXX 
-  X 
-XXX `
+const Font_9 = `
+ XX
+X X
+XXX
+  X
+XXX`
 
 const Font_period = `    
-    
-    
-    
-    
- X  `
+
+
+
+
+ X`
 
 const Font_comma = `    
-    
-    
-    
- X  
- X  `
+
+
+
+ X
+ X`
 
 const Font_slash = `    
-  X 
- X  
- X  
- X  
-X   `
+  X
+ X
+ X
+ X
+X`
 
 const Font_exclamation = `    
- X  
- X  
- X  
-    
- X  `
+ X
+ X
+ X
+
+ X`
 
 const Font_dash = `    
-    
-    
-XXX 
-    
-    `
+
+
+XXX`
+
+const Font_percent = `    
+X X
+  X
+ X
+X
+X X`
 
 // NewPakuFont provides a new font from based upon Paku Paku
 func NewPakuFont() *Font {
 	m := map[rune]string{
+		'A': Font_a,
+		'B': Font_b,
+		'C': Font_c,
+		'D': Font_d,
+		'E': Font_e,
+		'F': Font_f,
+		'G': Font_g,
+		'H': Font_h,
+		'I': Font_i,
+		'J': Font_j,
+		'K': Font_k,
+		'L': Font_l,
+		'M': Font_m,
+		'N': Font_n,
+		'O': Font_o,
+		'P': Font_p,
+		'Q': Font_q,
+		'R': Font_r,
+		'S': Font_s,
+		'T': Font_t,
+		'U': Font_u,
+		'V': Font_v,
+		'W': Font_w,
+		'X': Font_x,
+		'Y': Font_y,
+		'Z': Font_z,
 		'a': Font_a,
 		'b': Font_b,
 		'c': Font_c,
@@ -331,8 +362,9 @@ func NewPakuFont() *Font {
 		'/': Font_slash,
 		'!': Font_exclamation,
 		'-': Font_dash,
+		'%': Font_percent,
 	}
 
-	return NewFont(m, 5, 7)
+	return NewFont(m, 4, 7)
 }
 
