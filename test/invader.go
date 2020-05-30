@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
@@ -16,7 +17,6 @@ var Height int
 var gameState *GameState
 
 var randSrc *rand.Rand
-
 
 type EdgeType int
 
@@ -45,6 +45,24 @@ type GameState struct {
 	Score     *Score
 	UfoTimer  int
 	Ufo       *Ufo
+	Stats     *Stats
+}
+
+type CharacterType int
+
+const (
+	FighterChar CharacterType = iota
+	InvaderChar
+)
+
+type Stats struct {
+	sprite.BaseSprite
+	BulletFired  int
+	BulletHit    int
+	Wave         int
+	UfosTotal    int
+	UfosHit      int
+	FriendlyFire int
 }
 
 type Invader struct {
@@ -88,6 +106,7 @@ type Bullet struct {
 	sprite.BaseSprite
 	VY	int
 	Dead	bool
+	Firer	CharacterType
 }
 
 type Score struct {
@@ -328,7 +347,11 @@ const arrow_lr = `
    XXXXX`
 
 func NewGame() *GameState {
-	gs := &GameState{State: Title}
+	stats := NewStatsDisplay()
+
+	gs := &GameState{
+		State: Title,
+		Stats: stats}
 	return gs
 }
 
@@ -374,6 +397,7 @@ func (gs *GameState) Update() {
 	if gs.UfoTimer > t {
 		gs.UfoTimer = 0
 		gs.Ufo = NewUfo()
+		gs.Stats.UfosTotal += 1
 		if gs.State == Title {
 			gs.Ufo.Y = 34
 		}
@@ -482,6 +506,7 @@ func (gs *GameState) cullSprites() {
 				allSprites.Remove(sp)
 				if len(gs.lives) == 0 {
 					gs.State = GameOver
+					gs.Stats.ShowStats()
 				} else {
 					gs.player = gs.lives[len(gs.lives)-1]
 					gs.lives = gs.lives[:len(gs.lives)-1]
@@ -507,6 +532,7 @@ func (gs *GameState) removeInvader(i *Invader) {
 }
 
 func (gs *GameState) createWave() {
+	gs.Stats.Wave += 1
 	gs.direction = 2
 
 	for cnt := 0; cnt < 9; cnt++ {
@@ -606,7 +632,8 @@ func (s *Invader) Fire() {
 		Visible: true,
 		X: s.X+3,
 		Y: s.Y+4},
-		VY: 2}
+		VY: 2,
+		Firer: InvaderChar}
 	b.AddCostume(sprite.Convert("X \n X\nX \n  "))
 	b.AddCostume(sprite.Convert(" X\nX \n X\n  "))
 	allSprites.Sprites = append(allSprites.Sprites, b)
@@ -702,7 +729,8 @@ func (s *Fighter) Fire() {
 		Visible: true,
 		X: s.X+3,
 		Y: s.Y},
-		VY: -2}
+		VY: -2,
+		Firer: FighterChar}
 	b.AddCostume(sprite.Convert("X \n  "))
 	allSprites.Sprites = append(allSprites.Sprites, b)
 }
@@ -772,6 +800,11 @@ func (s *Bullet) Update() {
 			} else {
 				gameState.Score.Val += 10
 			}
+			if s.Firer == FighterChar {
+				gameState.Stats.BulletHit += 1
+			} else {
+				gameState.Stats.FriendlyFire += 1
+			}
 			i.Explode()
 			s.Dead = true
 		}
@@ -779,6 +812,7 @@ func (s *Bullet) Update() {
 
 	if gameState.Ufo != nil && !gameState.Ufo.Exploding && gameState.Ufo.HitAtPoint(s.X, s.Y+1) {
 		gameState.Ufo.Explode()
+		gameState.Stats.UfosHit += 1
 	}
 
 }
@@ -905,6 +939,40 @@ func ShowTitle() {
 	allSprites.Sprites = append(allSprites.Sprites, font_txt)
 }
 
+func NewStatsDisplay() *Stats {
+	d := &Stats{BaseSprite: sprite.BaseSprite{
+		X: 20,
+		Y: 15,
+		Visible: false},
+	}
+
+	return d
+}
+
+func (s *Stats) ShowStats() {
+	f := sprite.NewPakuFont()
+
+	var accuracy int
+	if s.BulletFired > 0 {
+		accuracy = int(math.Round(float64(s.BulletHit) / float64(s.BulletFired) * 100))
+	}
+	stats := []string{
+		f.BuildString(fmt.Sprintf("waves completed   %6d", s.Wave-1)),
+		f.BuildString(fmt.Sprintf("bullets fired     %6d", s.BulletFired)),
+		f.BuildString(fmt.Sprintf("invaders hit      %6d", s.BulletHit)),
+		f.BuildString(fmt.Sprintf("shooting accuracy %5d%%", accuracy)),
+		f.BuildString(fmt.Sprintf("friendly fire     %6d", s.FriendlyFire)),
+		f.BuildString(fmt.Sprintf("total ufos        %6d", s.UfosTotal)),
+		f.BuildString(fmt.Sprintf("ufos hit          %6d", s.UfosHit)),
+	}
+
+	c := strings.Join(stats, "\n")
+	s.AddCostume(sprite.Convert(c))
+
+	allSprites.Sprites = append(allSprites.Sprites, s)
+	s.Visible = true
+}
+
 func main() {
 	// XXX - Wait a bit until the terminal is properly initialized
 	time.Sleep(500 * time.Millisecond)
@@ -952,6 +1020,7 @@ mainloop:
 						gameState.player.MoveRight()
 					} else if ev.Key == tm.KeySpace {
 						gameState.player.Fire()
+						gameState.Stats.BulletFired += 1
 					}
 				}
 			} else if ev.Type == tm.EventResize {
