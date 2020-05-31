@@ -941,7 +941,7 @@ func ShowTitle() {
 
 func NewStatsDisplay() *Stats {
 	d := &Stats{BaseSprite: sprite.BaseSprite{
-		X: 20,
+		X: 25,
 		Y: 15,
 		Visible: false},
 	}
@@ -957,13 +957,13 @@ func (s *Stats) ShowStats() {
 		accuracy = int(math.Round(float64(s.BulletHit) / float64(s.BulletFired) * 100))
 	}
 	stats := []string{
-		f.BuildString(fmt.Sprintf("waves completed   %6d", s.Wave-1)),
-		f.BuildString(fmt.Sprintf("bullets fired     %6d", s.BulletFired)),
-		f.BuildString(fmt.Sprintf("invaders hit      %6d", s.BulletHit)),
-		f.BuildString(fmt.Sprintf("shooting accuracy %5d%%", accuracy)),
-		f.BuildString(fmt.Sprintf("friendly fire     %6d", s.FriendlyFire)),
-		f.BuildString(fmt.Sprintf("total ufos        %6d", s.UfosTotal)),
-		f.BuildString(fmt.Sprintf("ufos hit          %6d", s.UfosHit)),
+		f.BuildString(fmt.Sprintf("waves completed     %6d", s.Wave-1)),
+		f.BuildString(fmt.Sprintf("bullets fired       %6d", s.BulletFired)),
+		f.BuildString(fmt.Sprintf("invaders hit        %6d", s.BulletHit)),
+		f.BuildString(fmt.Sprintf("shooting accuracy   %5d%%", accuracy)),
+		f.BuildString(fmt.Sprintf("friendly fire       %6d", s.FriendlyFire)),
+		f.BuildString(fmt.Sprintf("total ufos          %6d", s.UfosTotal)),
+		f.BuildString(fmt.Sprintf("ufos hit            %6d", s.UfosHit)),
 	}
 
 	c := strings.Join(stats, "\n")
