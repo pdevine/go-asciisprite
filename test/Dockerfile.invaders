@@ -1,4 +1,4 @@
-FROM golang:alpine3.7
+FROM golang:alpine3.11
 WORKDIR /project
 COPY invader.go .
 RUN apk add --no-cache git
