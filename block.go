@@ -97,10 +97,42 @@ func Convert(s string) Costume {
 		}
 	}
 
-	costume := Costume{Blocks: blocks}
+	costume := Costume{Blocks: blocks, Width: maxC/2}
 
 	return costume
 }
+
+/*
+func DrawLine(x0, x1, y0, y1 int) []*Block {
+	dx := abs(x1 - x0)
+	dy := -abs(y1 - y0)
+	err := dx + dy
+	sx := 1
+	if x1 > x0 {
+		sx = -1
+	}
+	sy := 1
+	if y1 > y0 {
+		sy = -1
+	}
+	for {
+		// draw at x0, y0
+		if x0 == x1 && y0 == y1 {
+			break
+		}
+		e2 := 2 * err
+		if e2 > dy {
+			err += dy
+			x0 += sx
+		}
+		if e2 <= dx {
+			err += dx
+			y0 += sy
+		}
+	}
+	return nil
+}
+*/
 
 // Convert interpolates a string into color Unicode blocks.
 func ColorConvert(s string, bg tm.Attribute) Costume {
