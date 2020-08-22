@@ -25,9 +25,14 @@ const (
 	UpperRightEdge
 	LowerLeftEdge
 	LowerRightEdge
+	RightEdge
+	LowerEdge
 )
 
 type GameStateScreen int
+
+const GameWidth = 100
+const GameHeight = 80
 
 const (
 	Title GameStateScreen = iota
@@ -120,6 +125,7 @@ type Logo struct {
 	TargetY int
 	VY      float64
 	DY      float64
+	Started bool
 }
 
 type Arrow struct {
@@ -131,6 +137,16 @@ type Arrow struct {
 }
 
 type Edge struct {
+	sprite.BaseSprite
+}
+
+type AdjustText struct {
+	sprite.BaseSprite
+	logo      *Logo
+	copyright *CopyrightText
+}
+
+type CopyrightText struct {
 	sprite.BaseSprite
 }
 
@@ -318,33 +334,20 @@ const frame_lr = `      XX
 XXXXXXXX
 XXXXXXXX`
 
-const arrow_ul = `      
-XXXXX  
-XXX    
-X XX   
-X  XX  
-    XX `
+const arrow_r = `
+    X
+     XX
+XXXXXXXX
+     XX
+    X`
 
-const arrow_ur = `        
-   XXXXX
-     XXX
-    XX X
-   XX  X
-  XX    `
-
-const arrow_ll = `        
-    XX  
-X  XX   
-X XX    
-XXX     
-XXXXX   `
-
-const arrow_lr = `        
-  XX    
-   XX  X
-    XX X
-     XXX
-   XXXXX`
+const arrow_d = `
+    XX
+    XX
+    XX
+  X XX X
+   XXXX
+    XX`
 
 func NewGame() *GameState {
 	stats := NewStatsDisplay()
@@ -823,6 +826,9 @@ func (s *Score) Update() {
 }
 
 func (s *Logo) Update() {
+	if !s.Started {
+		return
+	}
 	s.VY = (float64(s.TargetY) - float64(s.Y)) * 0.3
 	s.Y += int(math.Round(s.VY))
 }
@@ -833,22 +839,10 @@ func NewArrow(t EdgeType) *Arrow {
 		Type: t,
 	}
 	switch s.Type {
-	case UpperLeftEdge:
-		s.DX = 4
-		s.DY = 3
-		s.AddCostume(sprite.Convert(arrow_ul))
-	case UpperRightEdge:
-		s.DX = 96
-		s.DY = 3
-		s.AddCostume(sprite.Convert(arrow_ur))
-	case LowerLeftEdge:
-		s.DX =  4
-		s.DY = 74
-		s.AddCostume(sprite.Convert(arrow_ll))
-	case LowerRightEdge:
-		s.DX = 96
-		s.DY = 74
-		s.AddCostume(sprite.Convert(arrow_lr))
+	case RightEdge:
+		s.AddCostume(sprite.Convert(arrow_r))
+	case LowerEdge:
+		s.AddCostume(sprite.Convert(arrow_d))
 	}
 	return s
 }
@@ -858,23 +852,62 @@ func (s *Arrow) Update() {
 
 	d := math.Sin(s.Angle) * 0.2
 	switch s.Type {
-	case UpperLeftEdge:
-		s.DX += d
-		s.DY += d
-	case UpperRightEdge:
+	case RightEdge:
 		s.DX -= d
-		s.DY += d
-	case LowerLeftEdge:
-		s.DX += d
+		s.X = Width - s.Width + int(math.Round(s.DX))
+		s.Y = Height / 2
+		if Width > GameWidth+2 {
+			s.Visible = false
+		} else {
+			s.Visible = true
+		}
+	case LowerEdge:
 		s.DY -= d
-	case LowerRightEdge:
-		s.DX -= d
-		s.DY -= d
+		s.Y = Height - 5 + int(math.Round(s.DY))
+		s.X = Width / 2 - s.Width
+		if Height > GameHeight-2 {
+			s.Visible = false
+		} else {
+			s.Visible = true
+		}
 	}
-	s.X = int(math.Round(s.DX))
-	s.Y = int(math.Round(s.DY))
 
 }
+
+func NewAdjustText(l *Logo, c *CopyrightText) *AdjustText {
+	f := sprite.NewPakuFont()
+	s := &AdjustText{BaseSprite: sprite.BaseSprite{
+		Visible: true},
+		logo:      l,
+		copyright: c,
+	}
+	s.AddCostume(sprite.Convert(f.BuildString("adjust your screen")))
+	return s
+}
+
+func (s *AdjustText) Update() {
+	s.X = Width/2 - s.Width/2
+	s.Y = Height/2
+	if Width > GameWidth+2 && Height > GameHeight-2 {
+		s.Visible = false
+		s.logo.Started = true
+		s.copyright.Visible = true
+	} else {
+		s.Visible = true
+	}
+}
+
+func NewCopyrightText() *CopyrightText {
+	f := sprite.NewJRSMFont()
+	s := &CopyrightText{BaseSprite: sprite.BaseSprite{
+		Visible: false},
+	}
+	s.AddCostume(sprite.Convert(f.BuildString("(c) 2019, 2020 Patrick Devine")))
+	s.X = GameWidth/2 - s.Width/2
+	s.Y = 20
+	return s
+}
+
 
 func NewEdge(t EdgeType) *Edge {
 	s := &Edge{BaseSprite: sprite.BaseSprite{
@@ -902,7 +935,6 @@ func NewEdge(t EdgeType) *Edge {
 	return s
 }
 
-
 func ShowTitle() {
 	l := &Logo{BaseSprite: sprite.BaseSprite{
 		X:       30,
@@ -912,31 +944,22 @@ func ShowTitle() {
 	}
 	l.AddCostume(sprite.Convert(logo))
 
-	adj_txt := &sprite.BaseSprite{
-		X: 20,
-		Y: 22,
-		Visible: true,
-	}
-	adj_txt.AddCostume(sprite.NewCostume("ADJUST YOUR TERMINAL TO SEE ALL OF THE EDGES OF THE PLAY AREA", '@'))
-
-	font_txt := &sprite.BaseSprite{
-		X: 27,
-		Y: 24,
-		Visible: true,
-	}
-	font_txt.AddCostume(sprite.NewCostume("Recommended Font:  Menlo 8pt (0.81 Line Spacing)", '@'))
+	copy_txt := NewCopyrightText()
+	adj_txt := NewAdjustText(l, copy_txt)
 
 	for _, et := range []EdgeType{UpperLeftEdge, UpperRightEdge, LowerLeftEdge, LowerRightEdge} {
-		a := NewArrow(et)
 		e := NewEdge(et)
 		allSprites.Sprites = append(allSprites.Sprites, e)
-		allSprites.Sprites = append(allSprites.Sprites, a)
 
+	}
+	for _, et := range []EdgeType{RightEdge, LowerEdge} {
+		a := NewArrow(et)
+		allSprites.Sprites = append(allSprites.Sprites, a)
 	}
 
 	allSprites.Sprites = append(allSprites.Sprites, l)
+	allSprites.Sprites = append(allSprites.Sprites, copy_txt)
 	allSprites.Sprites = append(allSprites.Sprites, adj_txt)
-	allSprites.Sprites = append(allSprites.Sprites, font_txt)
 }
 
 func NewStatsDisplay() *Stats {
