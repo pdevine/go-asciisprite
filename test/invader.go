@@ -41,16 +41,17 @@ const (
 )
 
 type GameState struct {
-	invaders  []*Invader
-	direction int
-	nextFire  *NextInvaderToFire
-	player    *Fighter
-	lives     []*Fighter
-	State     GameStateScreen
-	Score     *Score
-	UfoTimer  int
-	Ufo       *Ufo
-	Stats     *Stats
+	invaders   []*Invader
+	direction  int
+	nextFire   *NextInvaderToFire
+	player     *Fighter
+	lives      []*Fighter
+	State      GameStateScreen
+	Score      *Score
+	UfoTimer   int
+	Ufo        *Ufo
+	Stats      *Stats
+	screenReady bool
 }
 
 type CharacterType int
@@ -359,6 +360,9 @@ func NewGame() *GameState {
 }
 
 func (gs *GameState) StartGame() {
+	if !gs.screenReady {
+		return
+	}
 	allSprites.RemoveAll()
 
 	gs.player = NewFighter()
@@ -890,8 +894,8 @@ func (s *AdjustText) Update() {
 	s.Y = Height/2
 	if Width > GameWidth+2 && Height > GameHeight-2 {
 		s.Visible = false
-		s.logo.Started = true
-		s.copyright.Visible = true
+		allSprites.TriggerEvent("screenSized")
+		gameState.screenReady = true
 	} else {
 		s.Visible = true
 	}
@@ -902,9 +906,14 @@ func NewCopyrightText() *CopyrightText {
 	s := &CopyrightText{BaseSprite: sprite.BaseSprite{
 		Visible: false},
 	}
+	s.Init()
 	s.AddCostume(sprite.Convert(f.BuildString("(c) 2019, 2020 Patrick Devine")))
 	s.X = GameWidth/2 - s.Width/2
 	s.Y = 20
+
+	s.RegisterEvent("screenSized", func() {
+		s.Visible = true
+	})
 	return s
 }
 
@@ -942,7 +951,11 @@ func ShowTitle() {
 		Visible: true},
 		TargetY: 10,
 	}
+	l.Init()
 	l.AddCostume(sprite.Convert(logo))
+	l.RegisterEvent("screenSized", func() {
+		l.Started = true
+	})
 
 	copy_txt := NewCopyrightText()
 	adj_txt := NewAdjustText(l, copy_txt)
@@ -1029,13 +1042,11 @@ mainloop:
 		select {
 		case ev := <-event_queue:
 			if ev.Type == tm.EventKey {
-				if gameState.State == Title {
-					gameState.StartGame()
-					continue
-				}
-
 				if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
 					break mainloop
+				} else if gameState.State == Title {
+					gameState.StartGame()
+					continue
 				} else if gameState.State == Play {
 					if ev.Key == tm.KeyArrowLeft {
 						gameState.player.MoveLeft()
