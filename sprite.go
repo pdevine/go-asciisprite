@@ -126,6 +126,7 @@ func (s *BaseSprite) HitAtPoint(x, y int) bool {
 	return false
 }
 
+// RegisterEvent registers a callback function with a name in this sprite.
 func (s *BaseSprite) RegisterEvent(name string, fn func()) {
 	e := &Event{
 		Callback: fn,
@@ -134,6 +135,7 @@ func (s *BaseSprite) RegisterEvent(name string, fn func()) {
 	s.Events[name] = e
 }
 
+// TriggerEvent causes a previously registered callback function to be called.
 func (s *BaseSprite) TriggerEvent(name string) bool {
 	e, ok := s.Events[name]
 	if !ok {
@@ -143,6 +145,7 @@ func (s *BaseSprite) TriggerEvent(name string) bool {
 	return true
 }
 
+// RemoveEvent removes an event with a given name from this sprite.
 func (s *BaseSprite) RemoveEvent(name string) bool {
 	_, ok := s.Events[name]
 	if !ok {
@@ -152,6 +155,7 @@ func (s *BaseSprite) RemoveEvent(name string) bool {
 	return true
 }
 
+// TriggerEvent causes causes all events of this name to be called.
 func (sg *SpriteGroup) TriggerEvent(name string) {
 	sg.EventList = append(sg.EventList, name)
 }
