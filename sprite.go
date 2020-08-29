@@ -14,6 +14,12 @@ type Sprite interface {
 	SetCostume(int)
 	NextCostume()
 	PrevCostume()
+	TriggerEvent(string) bool
+}
+
+type Event struct {
+	Callback func()
+	Count    int
 }
 
 // A BaseSprite is a 2D sprite primitive.
@@ -27,11 +33,13 @@ type BaseSprite struct {
 	Visible        bool
 	CurrentCostume int
 	Dead           bool
+	Events         map[string]*Event
 }
 
 // A SpriteGroup is a convenience method for holding groups of sprites.
 type SpriteGroup struct {
-	Sprites []Sprite
+	Sprites   []Sprite
+	EventList []string
 }
 
 // NewBaseSprite creates a new BaseSprite from X and Y coordinates and a costume.
@@ -101,6 +109,7 @@ func (s *BaseSprite) PrevCostume() {
 // Init provides a hook for initializing a sprite.
 func (s *BaseSprite) Init() {
 	// Init things
+	s.Events = make(map[string]*Event)
 }
 
 // Update provides a hook for updating a sprite during the main loop.
@@ -117,6 +126,36 @@ func (s *BaseSprite) HitAtPoint(x, y int) bool {
 	return false
 }
 
+func (s *BaseSprite) RegisterEvent(name string, fn func()) {
+	e := &Event{
+		Callback: fn,
+	}
+
+	s.Events[name] = e
+}
+
+func (s *BaseSprite) TriggerEvent(name string) bool {
+	e, ok := s.Events[name]
+	if !ok {
+		return false
+	}
+	e.Callback()
+	return true
+}
+
+func (s *BaseSprite) RemoveEvent(name string) bool {
+	_, ok := s.Events[name]
+	if !ok {
+		return false
+	}
+	s.Events[name] = nil
+	return true
+}
+
+func (sg *SpriteGroup) TriggerEvent(name string) {
+	sg.EventList = append(sg.EventList, name)
+}
+
 // Render draws each sprite in the SpriteGroup to the buffer.
 func (sg *SpriteGroup) Render() {
 	for _, s := range sg.Sprites {
@@ -127,6 +166,14 @@ func (sg *SpriteGroup) Render() {
 
 // Update updates each sprite in the SpriteGroup.
 func (sg *SpriteGroup) Update() {
+	// Consume any triggered events
+	for _, e := range sg.EventList {
+		for _, s := range sg.Sprites {
+			s.TriggerEvent(e)
+		}
+	}
+	sg.EventList = []string{}
+
 	for _, s := range sg.Sprites {
 		s.Update()
 	}
