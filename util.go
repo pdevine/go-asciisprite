@@ -14,6 +14,13 @@ func min(x, y int) int {
 	return y
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 // A Rect provides a rectangle starting at (X,Y) with W width and H height
 type Rect struct {
 	X int
