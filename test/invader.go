@@ -117,8 +117,8 @@ type Bullet struct {
 
 type Score struct {
 	sprite.BaseSprite
-	Val int
-	f   *sprite.Font
+	Val  int
+	font *sprite.Font
 }
 
 type Logo struct {
@@ -143,11 +143,13 @@ type Edge struct {
 
 type AdjustText struct {
 	sprite.BaseSprite
-	logo      *Logo
-	copyright *CopyrightText
 }
 
 type CopyrightText struct {
+	sprite.BaseSprite
+}
+
+type DistanceText struct {
 	sprite.BaseSprite
 }
 
@@ -373,10 +375,10 @@ func (gs *GameState) StartGame() {
 		Visible: true,
 		X:       20,
 		Y:       1},
-		f: sprite.NewPakuFont(),
+		font: sprite.NewPakuFont(),
 	}
 
-	gs.Score.AddCostume(sprite.Convert(gs.Score.f.BuildString(fmt.Sprintf("%06d", gs.Score.Val))))
+	gs.Score.AddCostume(sprite.Convert(gs.Score.font.BuildString(fmt.Sprintf("%06d", gs.Score.Val))))
 	allSprites.Sprites = append(allSprites.Sprites, gs.Score)
 
 	for i := 0; i < 2; i++ {
@@ -614,6 +616,7 @@ func NewInvader(t int) *Invader {
 
 func (s *Invader) Explode() {
 	s.Costumes = []*sprite.Costume{}
+	s.CurrentCostume = 0
 	s.AddCostume(sprite.Convert(explosion_c0))
 	s.AddCostume(sprite.Convert(explosion_c1))
 	s.Exploding = true
@@ -826,7 +829,8 @@ func (s *Bullet) Update() {
 
 func (s *Score) Update() {
 	s.Costumes = nil
-	s.AddCostume(sprite.Convert(s.f.BuildString(fmt.Sprintf("score %06d", s.Val))))
+	// XXX - only update this if the score has changed
+	s.AddCostume(sprite.Convert(s.font.BuildString(fmt.Sprintf("score %06d", s.Val))))
 }
 
 func (s *Logo) Update() {
@@ -878,12 +882,10 @@ func (s *Arrow) Update() {
 
 }
 
-func NewAdjustText(l *Logo, c *CopyrightText) *AdjustText {
+func NewAdjustText() *AdjustText {
 	f := sprite.NewPakuFont()
 	s := &AdjustText{BaseSprite: sprite.BaseSprite{
 		Visible: true},
-		logo:      l,
-		copyright: c,
 	}
 	s.AddCostume(sprite.Convert(f.BuildString("adjust your screen")))
 	return s
@@ -913,6 +915,42 @@ func NewCopyrightText() *CopyrightText {
 
 	s.RegisterEvent("screenSized", func() {
 		s.Visible = true
+	})
+	return s
+}
+
+func NewDistanceText(t EdgeType) *DistanceText {
+	f := sprite.NewPakuFont()
+	s := &DistanceText{BaseSprite: sprite.BaseSprite{
+		Visible: true},
+	}
+	s.Init()
+
+	s.RegisterEvent("screenResized", func() {
+		switch t {
+		case LowerEdge:
+			if Height+1 >= GameHeight {
+				s.Visible = false
+			} else {
+				s.Costumes = nil
+				h := fmt.Sprintf("%dpx", GameHeight-Height-1)
+				s.AddCostume(sprite.Convert(f.BuildString(h)))
+				s.X = Width / 2 - s.Width/2
+				s.Y = Height - 10
+				s.Visible = true
+			}
+		case RightEdge:
+			if Width > GameWidth+2 {
+				s.Visible = false
+			} else {
+				s.Costumes = nil
+				h := fmt.Sprintf("%dpx", GameWidth+3-Width)
+				s.AddCostume(sprite.Convert(f.BuildString(h)))
+				s.X = Width - s.Width - 7
+				s.Y = Height / 2
+				s.Visible = true
+			}
+		}
 	})
 	return s
 }
@@ -958,7 +996,9 @@ func ShowTitle() {
 	})
 
 	copy_txt := NewCopyrightText()
-	adj_txt := NewAdjustText(l, copy_txt)
+	adj_txt := NewAdjustText()
+	height_txt := NewDistanceText(LowerEdge)
+	width_txt := NewDistanceText(RightEdge)
 
 	for _, et := range []EdgeType{UpperLeftEdge, UpperRightEdge, LowerLeftEdge, LowerRightEdge} {
 		e := NewEdge(et)
@@ -973,6 +1013,8 @@ func ShowTitle() {
 	allSprites.Sprites = append(allSprites.Sprites, l)
 	allSprites.Sprites = append(allSprites.Sprites, copy_txt)
 	allSprites.Sprites = append(allSprites.Sprites, adj_txt)
+	allSprites.Sprites = append(allSprites.Sprites, height_txt)
+	allSprites.Sprites = append(allSprites.Sprites, width_txt)
 }
 
 func NewStatsDisplay() *Stats {
@@ -1065,6 +1107,7 @@ mainloop:
 			} else if ev.Type == tm.EventResize {
 				Width = ev.Width
 				Height = ev.Height
+				allSprites.TriggerEvent("screenResized")
 			}
 		default:
 			if gameState.State == Play {
