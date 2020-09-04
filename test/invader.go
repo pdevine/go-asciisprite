@@ -406,9 +406,10 @@ func (gs *GameState) Update() {
 	if gs.UfoTimer > t {
 		gs.UfoTimer = 0
 		gs.Ufo = NewUfo()
-		gs.Stats.UfosTotal += 1
 		if gs.State == Title {
 			gs.Ufo.Y = 34
+		} else if gs.State == Play {
+			gs.Stats.UfosTotal += 1
 		}
 		allSprites.Sprites = append(allSprites.Sprites, gs.Ufo)
 	}
@@ -922,7 +923,7 @@ func NewCopyrightText() *CopyrightText {
 func NewDistanceText(t EdgeType) *DistanceText {
 	f := sprite.NewPakuFont()
 	s := &DistanceText{BaseSprite: sprite.BaseSprite{
-		Visible: true},
+		Visible: false},
 	}
 	s.Init()
 
