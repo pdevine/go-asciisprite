@@ -43,6 +43,7 @@ var ColorMap = map[rune]tm.Attribute{
 	'o': tm.Attribute(209),
 	'O': tm.Attribute(167),
 	'w': tm.ColorWhite,
+	'X': tm.ColorWhite,
 	'g': tm.ColorGreen,
 	'G': tm.Attribute(35),
 }
@@ -51,6 +52,12 @@ var ColorMap = map[rune]tm.Attribute{
 func Convert(s string) Costume {
 	sf := NewSurfaceFromString(s)
 	return sf.ConvertToCostume()
+}
+
+// ColorConvert convenience function to create a color Costume from a string
+func ColorConvert(s string, bg tm.Attribute) Costume {
+	sf := NewSurfaceFromString(s)
+	return sf.ConvertToColorCostume(bg)
 }
 
 
@@ -64,13 +71,13 @@ func NewSurface(width, height int, alpha bool) Surface {
 	s := Surface{
 		Blocks: blocks,
 		Width:  width,
-		Height:  height,
+		Height: height,
 		Alpha:  alpha,
 	}
 	return s
 }
 
-// NewSurfaceFromString creates a black and white Surface
+// NewSurfaceFromString creates a Surface which can be converted to a Costume
 func NewSurfaceFromString(s string) Surface {
 	l := strings.Split(s, "\n")
 	maxR := len(l) + len(l)%2
@@ -142,6 +149,73 @@ func (s Surface) ConvertToCostume() Costume {
 	return Costume{Blocks: blocks, Width: s.Width/2}
 }
 
+// ConvertToColorCostume converts a Surface into a color Costume usable in a Sprite
+func (s Surface) ConvertToColorCostume(bg tm.Attribute) Costume {
+	blocks := []*Block{}
+
+	for rcnt := 0; rcnt < len(s.Blocks); rcnt+=2 {
+		for ccnt := 0; ccnt < len(s.Blocks[rcnt]); ccnt+=2 {
+			var fg tm.Attribute
+			obg := bg
+
+			runes := []rune{
+				s.Blocks[rcnt][ccnt],
+				s.Blocks[rcnt][ccnt+1],
+				s.Blocks[rcnt+1][ccnt],
+				s.Blocks[rcnt+1][ccnt+1],
+			}
+
+			for _, b := range runes {
+				if b > 0 && fg == 0 {
+					fg = ColorMap[b]
+				} else if b != 0 && ColorMap[b] != fg {
+					obg = ColorMap[b]
+				}
+			}
+
+			// if we didn't set a foreground, just skip the block
+			if fg == 0 {
+				continue
+			}
+
+			c := 0
+			for cnt, b := range runes {
+				if ColorMap[b] == fg {
+					c += int(uint(1) << uint(cnt))
+				}
+			}
+
+			blk := &Block{
+				Char: Blocks[c],
+				X:    ccnt/2,
+				Y:    rcnt/2,
+				Fg:   tm.Attribute(fg),
+				Bg:   tm.Attribute(obg),
+			}
+			blocks = append(blocks, blk)
+		}
+	}
+
+	costume := Costume{Blocks: blocks}
+
+	return costume
+}
+
+// Blit a Surface onto a Surface
+func (s Surface) Blit(t Surface, x, y int) error {
+	for rcnt, r := range t.Blocks {
+		for ccnt, c := range r {
+			if rcnt + y >= s.Height || ccnt + x >= s.Width {
+				continue
+			}
+			if c != 0 && c != ' ' {
+				s.Blocks[rcnt+y][ccnt+x] = c
+			}
+		}
+	}
+	return nil
+}
+
 // Draw a line between two points on a Surface
 func (s Surface) Line(x0, y0, x1, y1 int) error {
 	if x0 >= s.Width || x1 >= s.Width {
@@ -197,82 +271,3 @@ func (s Surface) Rectangle(x0, y0, x1, y1 int) error {
 	return nil
 }
 
-// Convert interpolates a string into color Unicode blocks.
-func ColorConvert(s string, bg tm.Attribute) Costume {
-	blocks := []*Block{}
-	l := strings.Split(s, "\n")
-
-	// create an even number of rows
-	maxR := len(l) + len(l)%2
-	m := make([][]rune, maxR, maxR)
-
-	// iterate through the rows and figure out how wide all of the
-	// columns will be
-	var maxC int
-	for _, r := range l {
-		maxC = max(maxC, len(r) + len(r)%2)
-	}
-
-	// iterate through each row again and create a map of each of
-	// the chars
-	for rcnt, r := range l {
-		m[rcnt] = make([]rune, maxC, maxC)
-		for ccnt, c := range r {
-			if c != ' ' {
-				m[rcnt][ccnt] = c
-			}
-		}
-	}
-
-	// make certain we make a row for any added space
-	if len(l) < maxR {
-		m[maxR-1] = make([]rune, maxC, maxC)
-	}
-
-	for rcnt := 0; rcnt < len(m); rcnt+=2 {
-		for ccnt := 0; ccnt < len(m[rcnt]); ccnt+=2 {
-			var fg tm.Attribute
-			obg := bg
-
-			runes := []rune{
-				m[rcnt][ccnt],
-				m[rcnt][ccnt+1],
-				m[rcnt+1][ccnt],
-				m[rcnt+1][ccnt+1],
-			}
-
-			for _, b := range runes {
-				if b > 0 && fg == 0 {
-					fg = ColorMap[b]
-				} else if b != 0 && ColorMap[b] != fg {
-					obg = ColorMap[b]
-				}
-			}
-
-			// if we didn't set a foreground, just skip the block
-			if fg == 0 {
-				continue
-			}
-
-			c := 0
-			for cnt, b := range runes {
-				if ColorMap[b] == fg {
-					c += int(uint(1) << uint(cnt))
-				}
-			}
-
-			blk := &Block{
-				Char: Blocks[c],
-				X:    ccnt/2,
-				Y:    rcnt/2,
-				Fg:   tm.Attribute(fg),
-				Bg:   tm.Attribute(obg),
-			}
-			blocks = append(blocks, blk)
-		}
-	}
-
-	costume := Costume{Blocks: blocks}
-
-	return costume
-}
