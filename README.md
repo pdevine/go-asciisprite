@@ -155,6 +155,8 @@ mainloop:
 
  * [Tetromino Elektronica](https://github.com/pdevine/tetromino) A Falling Tetromino Game
 
+ * [Text Invaders!](https://github.com/pdevine/textinvaders) Unicode Space Shoot 'em Up
+
  * [Docker Doodle](https://github.com/docker/doodle) ASCII doodles with Moby the Whale
 
 
