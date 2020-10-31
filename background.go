@@ -37,7 +37,7 @@ func (s *BaseBackground) Update() {
 // Render draws background to the buffer.
 func (s *BaseBackground) Render() {
 	for _, b := range s.Background {
-		tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, tm.ColorWhite, tm.ColorBlack)
+		tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, b.Fg, b.Bg)
 	}
 }
 
