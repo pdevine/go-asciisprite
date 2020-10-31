@@ -10,6 +10,7 @@ type Sprite interface {
 	Init()
 	Update()
 	Render()
+	BlockRender(*Surface)
 	AddCostume(Costume)
 	SetCostume(int)
 	NextCostume()
@@ -29,6 +30,7 @@ type BaseSprite struct {
 	Height         int
 	Width          int
 	Costumes       []*Costume
+	BlockCostumes  []*Surface
 	Alpha          rune
 	Visible        bool
 	CurrentCostume int
@@ -40,6 +42,8 @@ type BaseSprite struct {
 type SpriteGroup struct {
 	Sprites   []Sprite
 	EventList []string
+	BlockMode bool
+	bg        *Surface
 }
 
 // NewBaseSprite creates a new BaseSprite from X and Y coordinates and a costume.
@@ -51,6 +55,7 @@ func NewBaseSprite(x, y int, costume Costume) *BaseSprite {
 		Width:          0,
 		Visible:        true,
 		Costumes:       []*Costume{},
+		BlockCostumes:  []*Surface{},
 		CurrentCostume: 0,
 		Dead:           false,
 	}
@@ -70,8 +75,13 @@ func (s *BaseSprite) AddCostume(costume Costume) {
 func (s *BaseSprite) SetCostume(c int) {
 	// XXX - check for bounds here and return an error
 	s.CurrentCostume = c
-	s.Height = s.Costumes[s.CurrentCostume].Height
-	s.Width = s.Costumes[s.CurrentCostume].Width
+	if len(s.BlockCostumes) > 0 {
+		s.Height = s.BlockCostumes[s.CurrentCostume].Height
+		s.Width = s.BlockCostumes[s.CurrentCostume].Width
+	} else if len(s.BlockCostumes) > 0 {
+		s.Height = s.Costumes[s.CurrentCostume].Height
+		s.Width = s.Costumes[s.CurrentCostume].Width
+	}
 }
 
 // Render draws the sprite to the screen buffer.
@@ -85,31 +95,56 @@ func (s *BaseSprite) Render() {
 	}
 }
 
+func (s *BaseSprite) BlockRender(bg *Surface) {
+	if s.Visible {
+		if len(s.BlockCostumes) > s.CurrentCostume {
+			surf := s.BlockCostumes[s.CurrentCostume]
+			bg.Blit(*surf, s.X, s.Y)
+		}
+	}
+}
+
 // NextCostume changes a sprite's costume to the next costume.
 func (s *BaseSprite) NextCostume() {
-	// XXX - this should just call SetCostume()
 	s.CurrentCostume++
-	if s.CurrentCostume >= len(s.Costumes) {
-		s.CurrentCostume = 0
+	if len(s.BlockCostumes) > 0 {
+		if s.CurrentCostume >= len(s.BlockCostumes) {
+			s.CurrentCostume = 0
+		}
+	} else if len(s.Costumes) > 0 {
+		if s.CurrentCostume >= len(s.Costumes) {
+			s.CurrentCostume = 0
+		}
 	}
-	s.Height = s.Costumes[s.CurrentCostume].Height
-	s.Width = s.Costumes[s.CurrentCostume].Width
+	// Set the Width/Height
+	s.SetCostume(s.CurrentCostume)
 }
 
 // PrevCostume changes a sprite's costume to the previous costume.
 func (s *BaseSprite) PrevCostume() {
 	s.CurrentCostume--
 	if s.CurrentCostume < 0 {
-		s.CurrentCostume = len(s.Costumes) - 1
+		if len(s.BlockCostumes) > 0 {
+			s.CurrentCostume = len(s.BlockCostumes)-1
+		} else {
+			s.CurrentCostume = len(s.Costumes)-1
+		}
 	}
-	s.Height = s.Costumes[s.CurrentCostume].Height
-	s.Width = s.Costumes[s.CurrentCostume].Width
+	// Set the Width/Height
+	s.SetCostume(s.CurrentCostume)
 }
 
 // Init provides a hook for initializing a sprite.
 func (s *BaseSprite) Init() {
 	// Init things
 	s.Events = make(map[string]*Event)
+	if len(s.BlockCostumes) > 0 {
+		s.Height = s.BlockCostumes[s.CurrentCostume].Height
+		s.Width = s.BlockCostumes[s.CurrentCostume].Width
+	} else if len(s.BlockCostumes) > 0 {
+		s.Height = s.Costumes[s.CurrentCostume].Height
+		s.Width = s.Costumes[s.CurrentCostume].Width
+	}
 }
 
 // Update provides a hook for updating a sprite during the main loop.
@@ -125,6 +160,15 @@ func (s *BaseSprite) HitAtPoint(x, y int) bool {
 	}
 	return false
 }
+
+func (s *BaseSprite) HitAtPointSurface(x, y int) bool {
+	surf := s.BlockCostumes[s.CurrentCostume]
+	if x >= s.X && x <= s.X+surf.Width && y >= s.Y && y <= s.Y+surf.Height {
+		return true
+	}
+	return false
+}
+
 
 // RegisterEvent registers a callback function with a name in this sprite.
 func (s *BaseSprite) RegisterEvent(name string, fn func()) {
@@ -155,6 +199,22 @@ func (s *BaseSprite) RemoveEvent(name string) bool {
 	return true
 }
 
+func (sg *SpriteGroup) Init(width, height int, blockMode bool) {
+	if blockMode {
+		sg.BlockMode = blockMode
+		surf := NewSurface(width, height, false)
+		sg.bg = &surf
+
+	}
+}
+
+func (sg *SpriteGroup) Resize(width, height int) {
+	if sg.BlockMode {
+		surf := NewSurface(width, height, false)
+		sg.bg = &surf
+	}
+}
+
 // TriggerEvent causes causes all events of this name to be called.
 func (sg *SpriteGroup) TriggerEvent(name string) {
 	sg.EventList = append(sg.EventList, name)
@@ -162,8 +222,20 @@ func (sg *SpriteGroup) TriggerEvent(name string) {
 
 // Render draws each sprite in the SpriteGroup to the buffer.
 func (sg *SpriteGroup) Render() {
-	for _, s := range sg.Sprites {
-		s.Render()
+	if sg.BlockMode {
+		sg.bg.Clear()
+		for _, s := range sg.Sprites {
+			s.BlockRender(sg.bg)
+		}
+		c := sg.bg.ConvertToCostume()
+		for _, b := range c.Blocks {
+			tm.SetCell(b.X, b.Y, b.Char, tm.Attribute(b.Fg), tm.Attribute(b.Bg))
+		}
+	} else {
+		for _, s := range sg.Sprites {
+			s.Render()
+		}
+
 	}
 	tm.Flush()
 }

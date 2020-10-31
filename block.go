@@ -1,7 +1,10 @@
 package sprite
 
 import (
+	"os"
 	"strings"
+	"image/png"
+
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
@@ -50,13 +53,13 @@ var ColorMap = map[rune]tm.Attribute{
 
 // Convert is a convenience function to create a 1 bit Costume from a string
 func Convert(s string) Costume {
-	sf := NewSurfaceFromString(s)
+	sf := NewSurfaceFromString(s, false)
 	return sf.ConvertToCostume()
 }
 
 // ColorConvert convenience function to create a color Costume from a string
 func ColorConvert(s string, bg tm.Attribute) Costume {
-	sf := NewSurfaceFromString(s)
+	sf := NewSurfaceFromString(s, false)
 	return sf.ConvertToColorCostume(bg)
 }
 
@@ -78,7 +81,7 @@ func NewSurface(width, height int, alpha bool) Surface {
 }
 
 // NewSurfaceFromString creates a Surface which can be converted to a Costume
-func NewSurfaceFromString(s string) Surface {
+func NewSurfaceFromString(s string, alpha bool) Surface {
 	l := strings.Split(s, "\n")
 	maxR := len(l) + len(l)%2
 
@@ -93,13 +96,21 @@ func NewSurfaceFromString(s string) Surface {
 	for rcnt, r := range l {
 		m[rcnt] = make([]rune, maxC, maxC)
 		for ccnt, c := range r {
-			if c != ' ' {
+			if c == ' ' {
+				continue
+				//m[rcnt][ccnt] = 0
+				/*
+				if !alpha {
+					m[rcnt][ccnt] = 0
+				} else {
+					continue
+				}
+				*/
+			} else {
 				m[rcnt][ccnt] = c
 			}
 		}
 	}
-
-	alpha := false
 
 	// make certain we make a row for any added space
 	if len(l) < maxR {
@@ -112,6 +123,52 @@ func NewSurfaceFromString(s string) Surface {
 		Alpha:  alpha,
 	}
 	return sf
+}
+
+func NewSurfaceFromPng(fn string) Surface {
+	f, err := os.Open(fn)
+	if err != nil {
+		//
+	}
+
+	img, err := png.Decode(f)
+	if err != nil {
+		//
+	}
+
+	b := img.Bounds()
+	maxR := (b.Max.Y-b.Min.Y) + (b.Max.Y-b.Min.Y)%2
+	maxC := (b.Max.X-b.Min.X) + (b.Max.X-b.Min.X)%2
+
+	// all block sprites must be even
+	m := make([][]rune, maxR, maxR)
+
+	for y := 0; y < b.Max.Y-b.Min.Y; y++ {
+		m[y] = make([]rune, maxC, maxC)
+		for x := 0;  x < b.Max.X-b.Min.X; x++ {
+			c := img.At(x+b.Min.X, y+b.Min.Y)
+			r, g, b, _ := c.RGBA()
+			if r != 0 || g != 0 || b != 0 {
+				m[y][x] = 'X'
+			}
+		}
+	}
+
+	sf := Surface{
+		Blocks: m,
+		Width:  maxC,
+		Height: maxR,
+		Alpha:  false,
+	}
+	return sf
+}
+
+func (s *Surface) Clear() {
+	blocks := make([][]rune, s.Height, s.Height)
+	for cnt := 0; cnt < s.Height; cnt++ {
+		blocks[cnt] = make([]rune, s.Width, s.Width)
+	}
+	s.Blocks = blocks
 }
 
 // ConvertToCostume converts a Surface into a Costume usable in a Sprite
@@ -205,10 +262,16 @@ func (s Surface) ConvertToColorCostume(bg tm.Attribute) Costume {
 func (s Surface) Blit(t Surface, x, y int) error {
 	for rcnt, r := range t.Blocks {
 		for ccnt, c := range r {
-			if rcnt + y >= s.Height || ccnt + x >= s.Width {
+			if rcnt + y < 0 || rcnt + y >= s.Height || ccnt + x < 0 || ccnt + x >= s.Width {
 				continue
 			}
-			if c != 0 && c != ' ' {
+			if c <= 16 {
+				if !t.Alpha {
+					s.Blocks[rcnt+y][ccnt+x] = c
+				} else {
+					s.Blocks[rcnt+y][ccnt+x] |= c
+				}
+			} else {
 				s.Blocks[rcnt+y][ccnt+x] = c
 			}
 		}
