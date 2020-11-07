@@ -93,17 +93,18 @@ func NewCow() *Cow {
 func (cow *Cow) Update() {
 	cow.X += cow.VX
 	cow.Y += cow.VY
-	if cow.X < 0 {
+	if cow.X <= 0 {
 		cow.VX = 1
-	} else if cow.X > Width - cow.Width {
+	} else if cow.X >= (Width-cow.Width) {
 		cow.VX = -1
 	}
-	if cow.Y < 0 {
+	if cow.Y <= 0 {
 		cow.VY = 1
-	} else if cow.Y > Height - cow.Height {
+	} else if cow.Y >= (Height-cow.Height) {
 		cow.VY = -1
 	}
 }
+
 
 func main() {
 	err := tm.Init()
@@ -150,6 +151,8 @@ mainloop:
 	}
 }
 ```
+
+![Bouncing Cow](./docs/cow-term.svg)
 
 ## Featured Projects
 
