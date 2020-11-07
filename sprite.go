@@ -78,7 +78,7 @@ func (s *BaseSprite) SetCostume(c int) {
 	if len(s.BlockCostumes) > 0 {
 		s.Height = s.BlockCostumes[s.CurrentCostume].Height
 		s.Width = s.BlockCostumes[s.CurrentCostume].Width
-	} else if len(s.BlockCostumes) > 0 {
+	} else if len(s.Costumes) > 0 {
 		s.Height = s.Costumes[s.CurrentCostume].Height
 		s.Width = s.Costumes[s.CurrentCostume].Width
 	}

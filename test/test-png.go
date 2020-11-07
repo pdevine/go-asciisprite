@@ -12,7 +12,7 @@ func main() {
 		//
 	}
 
-	img, err := png.Decode()
+	img, err := png.Decode(f)
 	if err != nil {
 		//
 	}

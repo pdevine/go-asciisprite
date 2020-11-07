@@ -5,6 +5,7 @@ import (
 	"strings"
 	"image/png"
 
+	//palette "github.com/pdevine/go-asciisprite/palette"
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
@@ -97,15 +98,11 @@ func NewSurfaceFromString(s string, alpha bool) Surface {
 		m[rcnt] = make([]rune, maxC, maxC)
 		for ccnt, c := range r {
 			if c == ' ' {
-				continue
-				//m[rcnt][ccnt] = 0
-				/*
 				if !alpha {
 					m[rcnt][ccnt] = 0
 				} else {
 					continue
 				}
-				*/
 			} else {
 				m[rcnt][ccnt] = c
 			}
@@ -147,6 +144,7 @@ func NewSurfaceFromPng(fn string) Surface {
 		m[y] = make([]rune, maxC, maxC)
 		for x := 0;  x < b.Max.X-b.Min.X; x++ {
 			c := img.At(x+b.Min.X, y+b.Min.Y)
+			//m[y][x] = rune(palette.Index(c))
 			r, g, b, _ := c.RGBA()
 			if r != 0 || g != 0 || b != 0 {
 				m[y][x] = 'X'
