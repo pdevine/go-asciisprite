@@ -40,10 +40,11 @@ type BaseSprite struct {
 
 // A SpriteGroup is a convenience method for holding groups of sprites.
 type SpriteGroup struct {
-	Sprites   []Sprite
-	EventList []string
-	BlockMode bool
-	bg        *Surface
+	Sprites    []Sprite
+	EventList  []string
+	BlockMode  bool
+	Background tm.Attribute
+	bg         *Surface
 }
 
 // NewBaseSprite creates a new BaseSprite from X and Y coordinates and a costume.
@@ -202,6 +203,7 @@ func (s *BaseSprite) RemoveEvent(name string) bool {
 func (sg *SpriteGroup) Init(width, height int, blockMode bool) {
 	if blockMode {
 		sg.BlockMode = blockMode
+		sg.Background = tm.ColorDefault
 		surf := NewSurface(width, height, false)
 		sg.bg = &surf
 
@@ -227,7 +229,7 @@ func (sg *SpriteGroup) Render() {
 		for _, s := range sg.Sprites {
 			s.BlockRender(sg.bg)
 		}
-		c := sg.bg.ConvertToCostume()
+		c := sg.bg.ConvertToColorCostume(sg.Background)
 		for _, b := range c.Blocks {
 			tm.SetCell(b.X, b.Y, b.Char, tm.Attribute(b.Fg), tm.Attribute(b.Bg))
 		}
