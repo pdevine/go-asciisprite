@@ -278,7 +278,7 @@ func (s Surface) Blit(t Surface, x, y int) error {
 }
 
 // Draw a line between two points on a Surface
-func (s Surface) Line(x0, y0, x1, y1 int) error {
+func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 	if x0 >= s.Width || x1 >= s.Width {
 		// XXX - put a real error here
 		return nil
@@ -300,7 +300,7 @@ func (s Surface) Line(x0, y0, x1, y1 int) error {
 	}
 	for {
 		// draw at x0, y0
-		s.Blocks[y0][x0] = 'X'
+		s.Blocks[y0][x0] = ch
 		if x0 == x1 && y0 == y1 {
 			break
 		}
@@ -317,7 +317,7 @@ func (s Surface) Line(x0, y0, x1, y1 int) error {
 	return nil
 }
 
-func (s Surface) Rectangle(x0, y0, x1, y1 int) error {
+func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune) error {
 	if x0 >= s.Width || x1 >= s.Width {
 		// XXX - put a real error here
 		return nil
@@ -325,10 +325,10 @@ func (s Surface) Rectangle(x0, y0, x1, y1 int) error {
 	if y0 >= s.Height || y1 >= s.Height {
 		return nil
 	}
-	s.Line(x0, y0, x1, y0)
-	s.Line(x1, y0, x1, y1)
-	s.Line(x0, y0, x0, y1)
-	s.Line(x0, y1, x1, y1)
+	s.Line(x0, y0, x1, y0, ch)
+	s.Line(x1, y0, x1, y1, ch)
+	s.Line(x0, y0, x0, y1, ch)
+	s.Line(x0, y1, x1, y1, ch)
 	return nil
 }
 
