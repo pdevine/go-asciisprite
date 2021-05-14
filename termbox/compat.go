@@ -33,6 +33,7 @@ func Init() error {
 	} else if e = s.Init(); e != nil {
 		return e
 	} else {
+		s.EnableMouse()
 		screen = s
 		return nil
 	}
@@ -678,6 +679,7 @@ const (
 	MouseLeft     = Key(tcell.KeyF63) // arbitrary assignments
 	MouseRight    = Key(tcell.KeyF62)
 	MouseMiddle   = Key(tcell.KeyF61)
+	MouseRelease  = Key(tcell.KeyF64)
 	KeySpace      = Key(tcell.Key(' '))
 )
 
@@ -708,6 +710,30 @@ func makeEvent(tev tcell.Event) Event {
 			Key:  Key(k),
 			Ch:   ch,
 			Mod:  Modifier(mod),
+		}
+	case *tcell.EventMouse:
+		x, y := tev.Position()
+		var k Key
+		switch tev.Buttons() {
+		case tcell.Button1:
+			k = MouseLeft
+			break
+		case tcell.Button2:
+			k = MouseMiddle
+			break
+		case tcell.Button3:
+			k = MouseRight
+			break
+		case tcell.ButtonNone:
+			k = MouseRelease
+			break
+		}
+
+		return Event{
+			Type:   EventMouse,
+			MouseX: x,
+			MouseY: y,
+			Key:    k,
 		}
 	default:
 		return Event{Type: EventNone}
