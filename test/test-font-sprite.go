@@ -61,6 +61,21 @@ func main() {
 	}
         s4.AddCostume(sprite.Convert(f2.BuildString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")))
 
+	f4 := sprite.New90sFont()
+	s5 := &sprite.BaseSprite{
+		Visible: true,
+		X:       10,
+		Y:       30,
+	}
+        s5.AddCostume(sprite.Convert(f4.BuildString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")))
+
+	s6 := &sprite.BaseSprite{
+		Visible: true,
+		X:       10,
+		Y:       35,
+	}
+        s6.AddCostume(sprite.Convert(f4.BuildString("the quick brown fox jumps over the lazy dog")))
+
 
 	txt := "Press 'ESC' to quit."
 	c := sprite.NewCostume(txt, '~')
@@ -71,6 +86,8 @@ func main() {
 	allSprites.Sprites = append(allSprites.Sprites, s2)
 	allSprites.Sprites = append(allSprites.Sprites, s3)
 	allSprites.Sprites = append(allSprites.Sprites, s4)
+	allSprites.Sprites = append(allSprites.Sprites, s5)
+	allSprites.Sprites = append(allSprites.Sprites, s6)
 
 mainloop:
 	for {
