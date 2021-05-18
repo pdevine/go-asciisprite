@@ -7,7 +7,6 @@ import (
 
 func main() {
 	f := sprite.NewPakuFont()
-
 	fmt.Printf("\n%s\n", f.BuildString("game over"))
 	fmt.Printf("\n%s\n", f.BuildString("the quick brown fox jumped over the lazy dog!/.,"))
 	fmt.Printf("\n%s\n", f.BuildString("0123456789"))
@@ -23,5 +22,9 @@ func main() {
 	fmt.Printf("\n%s\n", f2.BuildString("<>∨^[](){}\\"))
 	fmt.Printf("\n%s\n", f2.BuildString("#&='@|ß☆_~$"))
 
+	f3 := sprite.New90sFont()
+	fmt.Printf("\n%s\n", f3.BuildString("the quick brown fox jumped over the lazy dog!/.,"))
+	fmt.Printf("\n%s\n", f3.BuildString("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG!/.,"))
+	fmt.Printf("\n%s\n", f3.BuildString("0123456789"))
 }
 
