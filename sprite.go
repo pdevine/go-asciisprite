@@ -279,3 +279,9 @@ func (sg *SpriteGroup) Remove(s Sprite) {
 func (sg *SpriteGroup) RemoveAll() {
 	sg.Sprites = []Sprite{}
 }
+
+// MoveToTop renders a sprite over all other sprites in the SpriteGroup.
+func (sg *SpriteGroup) MoveToTop(s Sprite) {
+	sg.Remove(s)
+	sg.Sprites = append(sg.Sprites, s)
+}
