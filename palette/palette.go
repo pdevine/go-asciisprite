@@ -264,7 +264,7 @@ var Xterm = []color.Color{
 func Index(t color.RGBA) int {
 	for cnt, c := range Xterm {
 		if t == c {
-			return cnt
+			return cnt+1
 		}
 	}
 	return -1

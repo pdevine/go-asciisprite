@@ -3,9 +3,10 @@ package sprite
 import (
 	"os"
 	"strings"
+	"image/color"
 	"image/png"
 
-	//palette "github.com/pdevine/go-asciisprite/palette"
+	palette "github.com/pdevine/go-asciisprite/palette"
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
@@ -133,21 +134,22 @@ func NewSurfaceFromPng(fn string) Surface {
 		//
 	}
 
-	b := img.Bounds()
-	maxR := (b.Max.Y-b.Min.Y) + (b.Max.Y-b.Min.Y)%2
-	maxC := (b.Max.X-b.Min.X) + (b.Max.X-b.Min.X)%2
+	bnd := img.Bounds()
+	maxR := (bnd.Max.Y-bnd.Min.Y) + (bnd.Max.Y-bnd.Min.Y)%2
+	maxC := (bnd.Max.X-bnd.Min.X) + (bnd.Max.X-bnd.Min.X)%2
 
 	// all block sprites must be even
 	m := make([][]rune, maxR, maxR)
 
-	for y := 0; y < b.Max.Y-b.Min.Y; y++ {
+	for y := 0; y < bnd.Max.Y-bnd.Min.Y; y++ {
 		m[y] = make([]rune, maxC, maxC)
-		for x := 0;  x < b.Max.X-b.Min.X; x++ {
-			c := img.At(x+b.Min.X, y+b.Min.Y)
+		for x := 0;  x < bnd.Max.X-bnd.Min.X; x++ {
+			c := img.At(x+bnd.Min.X, y+bnd.Min.Y)
 			//m[y][x] = rune(palette.Index(c))
-			r, g, b, _ := c.RGBA()
-			if r != 0 || g != 0 || b != 0 {
-				m[y][x] = 'X'
+			r, g, b, a := c.RGBA()
+			i := palette.Index(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)})
+			if i > -1 {
+				m[y][x] = getRuneFromColorMap(i)
 			}
 		}
 	}
@@ -317,6 +319,7 @@ func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 	return nil
 }
 
+// Draw a rectangle on a Surface
 func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune) error {
 	if x0 >= s.Width || x1 >= s.Width {
 		// XXX - put a real error here
@@ -332,3 +335,12 @@ func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune) error {
 	return nil
 }
 
+func getRuneFromColorMap(idx int) rune {
+	for k, v := range ColorMap {
+		if v == tm.Attribute(idx) {
+			return k
+		}
+	}
+	ColorMap[rune(idx)] = tm.Attribute(idx)
+	return rune(idx)
+}
