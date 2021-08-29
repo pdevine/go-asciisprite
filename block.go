@@ -123,7 +123,7 @@ func NewSurfaceFromString(s string, alpha bool) Surface {
 	return sf
 }
 
-func NewSurfaceFromPng(fn string) Surface {
+func NewSurfaceFromPng(fn string, alpha bool) Surface {
 	f, err := os.Open(fn)
 	if err != nil {
 		//
@@ -145,11 +145,16 @@ func NewSurfaceFromPng(fn string) Surface {
 		m[y] = make([]rune, maxC, maxC)
 		for x := 0;  x < bnd.Max.X-bnd.Min.X; x++ {
 			c := img.At(x+bnd.Min.X, y+bnd.Min.Y)
-			//m[y][x] = rune(palette.Index(c))
 			r, g, b, a := c.RGBA()
-			i := palette.Index(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)})
-			if i > -1 {
-				m[y][x] = getRuneFromColorMap(i)
+			// we don't properly support the alpha channel, so only draw the pixel if
+			// the alpha is set
+			if a > 0 {
+				// we only support 256 colour mode, so get the index from the palette
+				// and create an entry in our colour map if needed
+				i := palette.Index(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)})
+				if i > -1 {
+					m[y][x] = getRuneFromColorMap(i)
+				}
 			}
 		}
 	}
@@ -158,7 +163,7 @@ func NewSurfaceFromPng(fn string) Surface {
 		Blocks: m,
 		Width:  maxC,
 		Height: maxR,
-		Alpha:  false,
+		Alpha:  alpha,
 	}
 	return sf
 }
@@ -262,17 +267,11 @@ func (s Surface) ConvertToColorCostume(bg tm.Attribute) Costume {
 func (s Surface) Blit(t Surface, x, y int) error {
 	for rcnt, r := range t.Blocks {
 		for ccnt, c := range r {
-			if rcnt + y < 0 || rcnt + y >= s.Height || ccnt + x < 0 || ccnt + x >= s.Width {
-				continue
-			}
-			if c <= 16 {
-				if !t.Alpha {
+			// Only blit in bounds
+			if rcnt+y > 0 && rcnt+y < s.Height && ccnt+x > 0 && ccnt+x < s.Width {
+				if c > 0 {
 					s.Blocks[rcnt+y][ccnt+x] = c
-				} else {
-					s.Blocks[rcnt+y][ccnt+x] |= c
 				}
-			} else {
-				s.Blocks[rcnt+y][ccnt+x] = c
 			}
 		}
 	}
@@ -281,14 +280,6 @@ func (s Surface) Blit(t Surface, x, y int) error {
 
 // Draw a line between two points on a Surface
 func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
-	if x0 >= s.Width || x1 >= s.Width {
-		// XXX - put a real error here
-		return nil
-	}
-	if y0 >= s.Height || y1 >= s.Height {
-		return nil
-	}
-
 	dx := abs(x1-x0)
 	dy := -abs(y1-y0)
 	err := dx+dy
@@ -301,8 +292,10 @@ func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 		sy = -1
 	}
 	for {
-		// draw at x0, y0
-		s.Blocks[y0][x0] = ch
+		// draw at x0, y0 if it's on the surface
+		if x0 >= 0 && x0 < s.Width && y0 >= 0 && y0 < s.Height {
+			s.Blocks[y0][x0] = ch
+		}
 		if x0 == x1 && y0 == y1 {
 			break
 		}

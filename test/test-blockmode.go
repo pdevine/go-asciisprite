@@ -47,14 +47,14 @@ func randVec() (int, int) {
         var x, y int
         r := rand.New(rand.NewSource(time.Now().UnixNano()))
         n := r.Intn(2)
-        x = n
-        if x == 0 {
+        x = 1
+        if n == 0 {
                 x = -1
         }
 
         n = r.Intn(2)
-        y = n
-        if y == 0 {
+        y = 1
+        if n == 0 {
                 y = -1
         }
         return x, y
@@ -67,9 +67,9 @@ func NewInvader() *Invader {
 		TimeOut: 10,
 	}
 
-	s1 := sprite.NewSurfaceFromPng("dog.png")
+	s1 := sprite.NewSurfaceFromPng("dog.png", true)
 	s.BlockCostumes = append(s.BlockCostumes, &s1)
-	s2 := sprite.NewSurfaceFromPng("dog2.png")
+	s2 := sprite.NewSurfaceFromPng("dog2.png", true)
 	s.BlockCostumes = append(s.BlockCostumes, &s2)
 
 	s.X, s.Y = randPos()
@@ -130,11 +130,12 @@ func main() {
 
 	allSprites.Init(Width, Height, true)
 	allSprites.BlockMode = true
+	allSprites.Background = tm.Attribute(178)
 	allSprites.Sprites = append(allSprites.Sprites, i)
 
 mainloop:
 	for {
-		tm.Clear(tm.ColorDefault, tm.ColorDefault)
+		tm.Clear(tm.Attribute(178), tm.Attribute(178))
 
 		select {
 		case ev := <-event_queue:
