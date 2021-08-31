@@ -41,7 +41,7 @@ type BaseSprite struct {
 // A SpriteGroup is a convenience method for holding groups of sprites.
 type SpriteGroup struct {
 	Sprites    []Sprite
-	EventList  []string
+	Events     chan string
 	BlockMode  bool
 	Background tm.Attribute
 	bg         *Surface
@@ -96,6 +96,7 @@ func (s *BaseSprite) Render() {
 	}
 }
 
+// BlockRender draws the sprite to the background surface
 func (s *BaseSprite) BlockRender(bg *Surface) {
 	if s.Visible {
 		if len(s.BlockCostumes) > s.CurrentCostume {
@@ -142,7 +143,7 @@ func (s *BaseSprite) Init() {
 	if len(s.BlockCostumes) > 0 {
 		s.Height = s.BlockCostumes[s.CurrentCostume].Height
 		s.Width = s.BlockCostumes[s.CurrentCostume].Width
-	} else if len(s.BlockCostumes) > 0 {
+	} else if len(s.Costumes) > 0 {
 		s.Height = s.Costumes[s.CurrentCostume].Height
 		s.Width = s.Costumes[s.CurrentCostume].Width
 	}
@@ -162,6 +163,7 @@ func (s *BaseSprite) HitAtPoint(x, y int) bool {
 	return false
 }
 
+// HitAtPointSurface reports whether a point on the surface intersects with this sprite.
 func (s *BaseSprite) HitAtPointSurface(x, y int) bool {
 	surf := s.BlockCostumes[s.CurrentCostume]
 	if x >= s.X && x <= s.X+surf.Width && y >= s.Y && y <= s.Y+surf.Height {
@@ -170,13 +172,11 @@ func (s *BaseSprite) HitAtPointSurface(x, y int) bool {
 	return false
 }
 
-
 // RegisterEvent registers a callback function with a name in this sprite.
 func (s *BaseSprite) RegisterEvent(name string, fn func()) {
 	e := &Event{
 		Callback: fn,
 	}
-
 	s.Events[name] = e
 }
 
@@ -200,16 +200,28 @@ func (s *BaseSprite) RemoveEvent(name string) bool {
 	return true
 }
 
+// Init initializes the event channel and sets the BlockMode
 func (sg *SpriteGroup) Init(width, height int, blockMode bool) {
 	if blockMode {
 		sg.BlockMode = blockMode
 		sg.Background = tm.ColorDefault
 		surf := NewSurface(width, height, false)
 		sg.bg = &surf
-
 	}
+
+	sg.Events = make(chan string)
+	go func() {
+		for {
+			v := <-sg.Events
+			for _, s := range sg.Sprites {
+				s.TriggerEvent(v)
+			}
+		}
+
+	}()
 }
 
+// Resize changes the size of the drawing buffer in BlockMode
 func (sg *SpriteGroup) Resize(width, height int) {
 	if sg.BlockMode {
 		surf := NewSurface(width, height, false)
@@ -217,9 +229,9 @@ func (sg *SpriteGroup) Resize(width, height int) {
 	}
 }
 
-// TriggerEvent causes causes all events of this name to be called.
+// TriggerEvent causes all events of this name to be called.
 func (sg *SpriteGroup) TriggerEvent(name string) {
-	sg.EventList = append(sg.EventList, name)
+	sg.Events <- name
 }
 
 // Render draws each sprite in the SpriteGroup to the buffer.
@@ -244,14 +256,6 @@ func (sg *SpriteGroup) Render() {
 
 // Update updates each sprite in the SpriteGroup.
 func (sg *SpriteGroup) Update() {
-	// Consume any triggered events
-	for _, e := range sg.EventList {
-		for _, s := range sg.Sprites {
-			s.TriggerEvent(e)
-		}
-	}
-	sg.EventList = []string{}
-
 	for _, s := range sg.Sprites {
 		s.Update()
 	}
