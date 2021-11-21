@@ -130,4 +130,3 @@ func (c *Costume) TopEdgeByColumn() map[int]int {
 	}
 	return t
 }
-

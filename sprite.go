@@ -90,7 +90,7 @@ func (s *BaseSprite) Render() {
 	if s.Visible {
 		for _, b := range s.Costumes[s.CurrentCostume].Blocks {
 			// call tcell screen.GetContent(b.X+s.X, b.Y+s.Y) here to see if we've already
-			// written to the same location 
+			// written to the same location
 			tm.SetCell(b.X+s.X, b.Y+s.Y, b.Char, tm.Attribute(b.Fg), tm.Attribute(b.Bg))
 		}
 	}
@@ -127,9 +127,9 @@ func (s *BaseSprite) PrevCostume() {
 	s.CurrentCostume--
 	if s.CurrentCostume < 0 {
 		if len(s.BlockCostumes) > 0 {
-			s.CurrentCostume = len(s.BlockCostumes)-1
+			s.CurrentCostume = len(s.BlockCostumes) - 1
 		} else {
-			s.CurrentCostume = len(s.Costumes)-1
+			s.CurrentCostume = len(s.Costumes) - 1
 		}
 	}
 	// Set the Width/Height

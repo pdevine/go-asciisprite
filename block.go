@@ -1,10 +1,11 @@
 package sprite
 
 import (
-	"os"
-	"strings"
+	"image"
 	"image/color"
 	"image/png"
+	"os"
+	"strings"
 
 	palette "github.com/pdevine/go-asciisprite/palette"
 	tm "github.com/pdevine/go-asciisprite/termbox"
@@ -12,22 +13,22 @@ import (
 
 // Blocks provides a map of bits to Unicode block character runes.
 var Blocks = map[int]rune{
-   0: ' ',
-   1: '▘',
-   2: '▝' ,
-   3: '▀',
-   4: '▖',
-   5: '▌',
-   6: '▞',
-   7: '▛',
-   8: '▗',
-   9: '▚',
-  10: '▐',
-  11: '▜',
-  12: '▄',
-  13: '▙',
-  14: '▟',
-  15: '█',
+	0:  ' ',
+	1:  '▘',
+	2:  '▝',
+	3:  '▀',
+	4:  '▖',
+	5:  '▌',
+	6:  '▞',
+	7:  '▛',
+	8:  '▗',
+	9:  '▚',
+	10: '▐',
+	11: '▜',
+	12: '▄',
+	13: '▙',
+	14: '▟',
+	15: '█',
 }
 
 type Surface struct {
@@ -65,7 +66,6 @@ func ColorConvert(s string, bg tm.Attribute) Costume {
 	return sf.ConvertToColorCostume(bg)
 }
 
-
 // NewSurface creates a Surface
 func NewSurface(width, height int, alpha bool) Surface {
 	blocks := make([][]rune, height, height)
@@ -92,7 +92,7 @@ func NewSurfaceFromString(s string, alpha bool) Surface {
 
 	var maxC int
 	for _, r := range l {
-		maxC = max(maxC, len(r) + len(r)%2)
+		maxC = max(maxC, len(r)+len(r)%2)
 	}
 
 	for rcnt, r := range l {
@@ -123,6 +123,7 @@ func NewSurfaceFromString(s string, alpha bool) Surface {
 	return sf
 }
 
+// NewSurfaceFromPng returns a Surface from a PNG file
 func NewSurfaceFromPng(fn string, alpha bool) Surface {
 	f, err := os.Open(fn)
 	if err != nil {
@@ -133,17 +134,21 @@ func NewSurfaceFromPng(fn string, alpha bool) Surface {
 	if err != nil {
 		//
 	}
+	return NewSurfaceFromImage(img, alpha)
+}
 
+// NewSurfaceFromImage returns a Surface from an image.Image
+func NewSurfaceFromImage(img image.Image, alpha bool) Surface {
 	bnd := img.Bounds()
-	maxR := (bnd.Max.Y-bnd.Min.Y) + (bnd.Max.Y-bnd.Min.Y)%2
-	maxC := (bnd.Max.X-bnd.Min.X) + (bnd.Max.X-bnd.Min.X)%2
+	maxR := (bnd.Max.Y - bnd.Min.Y) + (bnd.Max.Y-bnd.Min.Y)%2
+	maxC := (bnd.Max.X - bnd.Min.X) + (bnd.Max.X-bnd.Min.X)%2
 
 	// all block sprites must be even
 	m := make([][]rune, maxR, maxR)
 
 	for y := 0; y < bnd.Max.Y-bnd.Min.Y; y++ {
 		m[y] = make([]rune, maxC, maxC)
-		for x := 0;  x < bnd.Max.X-bnd.Min.X; x++ {
+		for x := 0; x < bnd.Max.X-bnd.Min.X; x++ {
 			c := img.At(x+bnd.Min.X, y+bnd.Min.Y)
 			r, g, b, a := c.RGBA()
 			// we don't properly support the alpha channel, so only draw the pixel if
@@ -168,6 +173,30 @@ func NewSurfaceFromPng(fn string, alpha bool) Surface {
 	return sf
 }
 
+func NewSurfacesFromPngSheet(fn string, r image.Rectangle, alpha bool) []Surface {
+	var surfs []Surface
+
+	f, err := os.Open(fn)
+	if err != nil {
+		//
+	}
+
+	img, err := png.Decode(f)
+	if err != nil {
+		//
+	}
+	bnd := img.Bounds()
+	w := r.Max.X
+	i := img.(*image.Paletted)
+
+	for cnt := 0; cnt < bnd.Max.X/w; cnt++ {
+		rect := image.Rect(cnt*w, 0, cnt*w+w, r.Max.Y)
+		surfs = append(surfs, NewSurfaceFromImage(i.SubImage(rect), alpha))
+	}
+	return surfs
+}
+
+// Clear removes all blocks from a Surface
 func (s *Surface) Clear() {
 	blocks := make([][]rune, s.Height, s.Height)
 	for cnt := 0; cnt < s.Height; cnt++ {
@@ -180,10 +209,10 @@ func (s *Surface) Clear() {
 func (s Surface) ConvertToCostume() Costume {
 	blocks := []*Block{}
 
-	for rcnt := 0; rcnt < len(s.Blocks); rcnt+=2 {
+	for rcnt := 0; rcnt < len(s.Blocks); rcnt += 2 {
 		// XXX - needs to be max(len(m[rcnt]), len(m[rcnt+1]))
 		// for ccnt := 0; ccnt < max(len(m[rcnt]), len(m[rcnt+1])); ccnt+=2 {
-		for ccnt := 0; ccnt < len(s.Blocks[rcnt]); ccnt+=2 {
+		for ccnt := 0; ccnt < len(s.Blocks[rcnt]); ccnt += 2 {
 			c := 0
 			if s.Blocks[rcnt][ccnt] != 0 {
 				c += 1
@@ -201,22 +230,22 @@ func (s Surface) ConvertToCostume() Costume {
 			if (s.Alpha && c > 0) || (!s.Alpha) {
 				b := &Block{
 					Char: Blocks[c],
-					X:    ccnt/2,
-					Y:    rcnt/2,
+					X:    ccnt / 2,
+					Y:    rcnt / 2,
 				}
 				blocks = append(blocks, b)
 			}
 		}
 	}
-	return Costume{Blocks: blocks, Width: s.Width/2}
+	return Costume{Blocks: blocks, Width: s.Width / 2}
 }
 
 // ConvertToColorCostume converts a Surface into a color Costume usable in a Sprite
 func (s Surface) ConvertToColorCostume(bg tm.Attribute) Costume {
 	blocks := []*Block{}
 
-	for rcnt := 0; rcnt < len(s.Blocks); rcnt+=2 {
-		for ccnt := 0; ccnt < len(s.Blocks[rcnt]); ccnt+=2 {
+	for rcnt := 0; rcnt < len(s.Blocks); rcnt += 2 {
+		for ccnt := 0; ccnt < len(s.Blocks[rcnt]); ccnt += 2 {
 			var fg tm.Attribute
 			obg := bg
 
@@ -249,8 +278,8 @@ func (s Surface) ConvertToColorCostume(bg tm.Attribute) Costume {
 
 			blk := &Block{
 				Char: Blocks[c],
-				X:    ccnt/2,
-				Y:    rcnt/2,
+				X:    ccnt / 2,
+				Y:    rcnt / 2,
 				Fg:   tm.Attribute(fg),
 				Bg:   tm.Attribute(obg),
 			}
@@ -280,9 +309,9 @@ func (s Surface) Blit(t Surface, x, y int) error {
 
 // Draw a line between two points on a Surface
 func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
-	dx := abs(x1-x0)
-	dy := -abs(y1-y0)
-	err := dx+dy
+	dx := abs(x1 - x0)
+	dy := -abs(y1 - y0)
+	err := dx + dy
 	sx := 1
 	if x0 > x1 {
 		sx = -1

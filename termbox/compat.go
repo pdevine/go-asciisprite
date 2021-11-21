@@ -1,4 +1,4 @@
-// Copyright 2016 The TCell Authors
+// Copyright 2020 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package termbox is a compatibility layer to allow tcells to emulate
+// Package termbox is a compatibility layer to allow tcell to emulate
 // the github.com/nsf/termbox package.
 package termbox
 
@@ -27,7 +27,8 @@ var outMode OutputMode
 
 // Init initializes the screen for use.
 func Init() error {
-	outMode = Output256
+	outMode = OutputNormal
+	//outMode = Output256
 	if s, e := tcell.NewScreen(); e != nil {
 		return e
 	} else if e = s.Init(); e != nil {
@@ -466,15 +467,14 @@ func fixColor(c tcell.Color) tcell.Color {
 	}
 	switch outMode {
 	case OutputNormal:
-		c %= tcell.Color(16)
+		//c = tcell.PaletteColor(int(c) & 0xf)
 	case Output256:
+		//c = tcell.PaletteColor(int(c) & 0xff)
 		c %= tcell.Color(256)
 	case Output216:
-		c %= tcell.Color(216)
-		c += tcell.Color(16)
+		//c = tcell.PaletteColor(int(c)%216 + 16)
 	case OutputGrayscale:
-		c %= tcell.Color(24)
-		c += tcell.Color(232)
+		//c %= tcell.PaletteColor(int(c)%24 + 232)
 	default:
 		c = tcell.ColorDefault
 	}
@@ -484,8 +484,11 @@ func fixColor(c tcell.Color) tcell.Color {
 func mkStyle(fg, bg Attribute) tcell.Style {
 	st := tcell.StyleDefault
 
+	//f := tcell.PaletteColor(int(fg)&0x1ff - 1)
+	//b := tcell.PaletteColor(int(bg)&0x1ff - 1)
 	f := tcell.Color(int(fg)&0x1ff) - 1
 	b := tcell.Color(int(bg)&0x1ff) - 1
+
 
 	f = fixColor(f)
 	b = fixColor(b)
@@ -526,15 +529,19 @@ type InputMode int
 
 // Unused input modes; here for compatibility.
 const (
-	InputCurrent InputMode = iota
-	InputEsc
+	InputEsc InputMode = 1 << iota
 	InputAlt
 	InputMouse
+	InputCurrent InputMode = 0
 )
 
-// SetInputMode does not do anything in this version.
+// SetInputMode does not do much in this version.
 func SetInputMode(mode InputMode) InputMode {
-	// We don't do anything else right now
+	if mode&InputMouse != 0 {
+		screen.EnableMouse()
+	} else {
+		screen.DisableMouse()
+	}
 	return InputEsc
 }
 
@@ -702,6 +709,8 @@ func makeEvent(tev tcell.Event) Event {
 			ch = tev.Rune()
 			if ch == ' ' {
 				k = tcell.Key(' ')
+			} else {
+				k = tcell.Key(0)
 			}
 		}
 		mod := tev.Modifiers()

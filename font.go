@@ -25,7 +25,7 @@ func NewFont(m map[rune]string, w, h int) *Font {
 }
 
 // BuildString provides a unicode block string from an ASCII string.
-func (f *Font) BuildString(s string) string{
+func (f *Font) BuildString(s string) string {
 	t := make([]string, f.Height)
 	formatStr := "%-" + strconv.Itoa(f.Width) + "v"
 

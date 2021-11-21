@@ -32,7 +32,6 @@ const frame_lr = `      XX
 XXXXXXXX
 XXXXXXXX`
 
-
 const arrow_ul = `
 XXXXX
 XXX
@@ -64,22 +63,22 @@ const arrow_lr = `
 type EdgeType int
 
 const (
-        UpperLeftEdge EdgeType = iota
-        UpperRightEdge
-        LowerLeftEdge
-        LowerRightEdge
+	UpperLeftEdge EdgeType = iota
+	UpperRightEdge
+	LowerLeftEdge
+	LowerRightEdge
 )
 
 type TitleArrow struct {
-        BaseSprite
-        DX    float64
-        DY    float64
-        Angle float64
-        Type  EdgeType
+	BaseSprite
+	DX    float64
+	DY    float64
+	Angle float64
+	Type  EdgeType
 }
 
 type TitleEdge struct {
-        BaseSprite
+	BaseSprite
 }
 
 type TitleScreen struct {
@@ -88,79 +87,79 @@ type TitleScreen struct {
 
 // NewTitleEdge create an edge marker in the TitleScreen.
 func NewTitleEdge(t EdgeType, r Rect) *TitleEdge {
-        s := &TitleEdge{BaseSprite: BaseSprite{
-                Visible: true},
-        }
+	s := &TitleEdge{BaseSprite: BaseSprite{
+		Visible: true},
+	}
 
-        switch t {
-        case UpperLeftEdge:
-                s.X = r.X+1
-                s.Y = r.Y+1
-                s.AddCostume(Convert(frame_ul))
-        case UpperRightEdge:
-                s.X = r.X+r.W-1
-                s.Y = r.Y+1
-                s.AddCostume(Convert(frame_ur))
-        case LowerLeftEdge:
-                s.X = r.X+1
-                s.Y = r.Y+r.H-1
-                s.AddCostume(Convert(frame_ll))
-        case LowerRightEdge:
-                s.X = r.X+r.W-1
-                s.Y = r.Y+r.H-1
-                s.AddCostume(Convert(frame_lr))
-        }
-        return s
+	switch t {
+	case UpperLeftEdge:
+		s.X = r.X + 1
+		s.Y = r.Y + 1
+		s.AddCostume(Convert(frame_ul))
+	case UpperRightEdge:
+		s.X = r.X + r.W - 1
+		s.Y = r.Y + 1
+		s.AddCostume(Convert(frame_ur))
+	case LowerLeftEdge:
+		s.X = r.X + 1
+		s.Y = r.Y + r.H - 1
+		s.AddCostume(Convert(frame_ll))
+	case LowerRightEdge:
+		s.X = r.X + r.W - 1
+		s.Y = r.Y + r.H - 1
+		s.AddCostume(Convert(frame_lr))
+	}
+	return s
 }
 
 // NewTitleArrow creates a TitleArrow in the TitleScreen.
 func NewTitleArrow(t EdgeType, r Rect) *TitleArrow {
-        s := &TitleArrow{BaseSprite: BaseSprite{
-                Visible: true},
-                Type: t,
-        }
-        switch s.Type {
-        case UpperLeftEdge:
-                s.DX = float64(r.X+4)
-                s.DY = float64(r.Y+3)
-                s.AddCostume(Convert(arrow_ul))
-        case UpperRightEdge:
-                s.DX = float64(r.X+r.W-4)
-                s.DY = float64(r.Y+3)
-                s.AddCostume(Convert(arrow_ur))
-        case LowerLeftEdge:
-                s.DX = float64(r.X+4)
-                s.DY = float64(r.Y+r.H-3)
-                s.AddCostume(Convert(arrow_ll))
-        case LowerRightEdge:
-                s.DX = float64(r.X+r.W-4)
-                s.DY = float64(r.Y+r.H-3)
-                s.AddCostume(Convert(arrow_lr))
-        }
-        return s
+	s := &TitleArrow{BaseSprite: BaseSprite{
+		Visible: true},
+		Type: t,
+	}
+	switch s.Type {
+	case UpperLeftEdge:
+		s.DX = float64(r.X + 4)
+		s.DY = float64(r.Y + 3)
+		s.AddCostume(Convert(arrow_ul))
+	case UpperRightEdge:
+		s.DX = float64(r.X + r.W - 4)
+		s.DY = float64(r.Y + 3)
+		s.AddCostume(Convert(arrow_ur))
+	case LowerLeftEdge:
+		s.DX = float64(r.X + 4)
+		s.DY = float64(r.Y + r.H - 3)
+		s.AddCostume(Convert(arrow_ll))
+	case LowerRightEdge:
+		s.DX = float64(r.X + r.W - 4)
+		s.DY = float64(r.Y + r.H - 3)
+		s.AddCostume(Convert(arrow_lr))
+	}
+	return s
 }
 
 // Update moves a TitleArrow in a TitleScreen.
 func (s *TitleArrow) Update() {
-        s.Angle += 0.25
+	s.Angle += 0.25
 
-        d := math.Sin(s.Angle) * 0.2
-        switch s.Type {
-        case UpperLeftEdge:
-                s.DX += d
-                s.DY += d
-        case UpperRightEdge:
-                s.DX -= d
-                s.DY += d
-        case LowerLeftEdge:
-                s.DX += d
-                s.DY -= d
-        case LowerRightEdge:
-                s.DX -= d
-                s.DY -= d
-        }
-        s.X = int(math.Round(s.DX))
-        s.Y = int(math.Round(s.DY))
+	d := math.Sin(s.Angle) * 0.2
+	switch s.Type {
+	case UpperLeftEdge:
+		s.DX += d
+		s.DY += d
+	case UpperRightEdge:
+		s.DX -= d
+		s.DY += d
+	case LowerLeftEdge:
+		s.DX += d
+		s.DY -= d
+	case LowerRightEdge:
+		s.DX -= d
+		s.DY -= d
+	}
+	s.X = int(math.Round(s.DX))
+	s.Y = int(math.Round(s.DY))
 
 }
 
@@ -171,28 +170,28 @@ func InitTitleScreen(r Rect) *TitleScreen {
 	}
 
 	txt := "ADJUST YOUR TERMINAL TO SEE ALL OF THE EDGES OF THE PLAY AREA"
-        adj_txt := &BaseSprite{
-                X: r.X + r.W/2 - len(txt)/2,
-                Y: 22,
-                Visible: true,
-        }
-        adj_txt.AddCostume(NewCostume(txt, '@'))
+	adj_txt := &BaseSprite{
+		X:       r.X + r.W/2 - len(txt)/2,
+		Y:       22,
+		Visible: true,
+	}
+	adj_txt.AddCostume(NewCostume(txt, '@'))
 
 	txt = "Recommended Font:  Menlo 8pt (0.81 Line Spacing)"
-        font_txt := &BaseSprite{
-                X: r.X + r.W/2 - len(txt)/2,
-                Y: 24,
-                Visible: true,
-        }
-        font_txt.AddCostume(NewCostume(txt, '@'))
+	font_txt := &BaseSprite{
+		X:       r.X + r.W/2 - len(txt)/2,
+		Y:       24,
+		Visible: true,
+	}
+	font_txt.AddCostume(NewCostume(txt, '@'))
 
-        for _, et := range []EdgeType{UpperLeftEdge, UpperRightEdge, LowerLeftEdge, LowerRightEdge} {
-                a := NewTitleArrow(et, r)
-                e := NewTitleEdge(et, r)
+	for _, et := range []EdgeType{UpperLeftEdge, UpperRightEdge, LowerLeftEdge, LowerRightEdge} {
+		a := NewTitleArrow(et, r)
+		e := NewTitleEdge(et, r)
 		title.Sprites.Sprites = append(title.Sprites.Sprites, e)
 		title.Sprites.Sprites = append(title.Sprites.Sprites, a)
 
-        }
+	}
 
 	title.Sprites.Sprites = append(title.Sprites.Sprites, adj_txt)
 	title.Sprites.Sprites = append(title.Sprites.Sprites, font_txt)
@@ -212,4 +211,3 @@ func (t *TitleScreen) Render() {
 		s.Render()
 	}
 }
-
