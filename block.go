@@ -205,6 +205,15 @@ func (s *Surface) Clear() {
 	s.Blocks = blocks
 }
 
+// Fill fills an entire surface with a rune
+func (s *Surface) Fill(ch rune) {
+	for rcnt, r := range s.Blocks {
+		for ccnt, _ := range r {
+			s.Blocks[rcnt][ccnt] = ch
+		}
+	}
+}
+
 // ConvertToCostume converts a Surface into a Costume usable in a Sprite
 func (s Surface) ConvertToCostume() Costume {
 	blocks := []*Block{}
@@ -297,7 +306,7 @@ func (s Surface) Blit(t Surface, x, y int) error {
 	for rcnt, r := range t.Blocks {
 		for ccnt, c := range r {
 			// Only blit in bounds
-			if rcnt+y > 0 && rcnt+y < s.Height && ccnt+x > 0 && ccnt+x < s.Width {
+			if rcnt+y >= 0 && rcnt+y < s.Height && ccnt+x >= 0 && ccnt+x < s.Width {
 				if c > 0 {
 					s.Blocks[rcnt+y][ccnt+x] = c
 				}

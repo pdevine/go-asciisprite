@@ -16,6 +16,7 @@ type Sprite interface {
 	NextCostume()
 	PrevCostume()
 	TriggerEvent(string) bool
+	IsDead() bool
 }
 
 type Event struct {
@@ -200,6 +201,11 @@ func (s *BaseSprite) RemoveEvent(name string) bool {
 	return true
 }
 
+// IsDead returns if the sprite is dead and should be reaped.
+func (s *BaseSprite) IsDead() bool {
+	return s.Dead
+}
+
 // Init initializes the event channel and sets the BlockMode
 func (sg *SpriteGroup) Init(width, height int, blockMode bool) {
 	if blockMode {
@@ -213,9 +219,18 @@ func (sg *SpriteGroup) Init(width, height int, blockMode bool) {
 	go func() {
 		for {
 			v := <-sg.Events
+			var dl []Sprite
 			for _, s := range sg.Sprites {
-				s.TriggerEvent(v)
+				if !s.IsDead() {
+					s.TriggerEvent(v)
+				} else {
+					dl = append(dl, s)
+				}
 			}
+			for _, s := range dl {
+				sg.Remove(s)
+			}
+
 		}
 
 	}()
