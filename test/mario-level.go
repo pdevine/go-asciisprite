@@ -488,7 +488,7 @@ NNNNNNNNOOONOOOO
 NNNNNNNNNNNNNNNN`
 
 type Block struct {
-        sprite.BaseSprite
+	sprite.BaseSprite
 }
 
 type QuestionBlock struct {
@@ -499,10 +499,10 @@ type QuestionBlock struct {
 
 func InitQuestionBlock(X, Y int) *QuestionBlock {
 	b := &QuestionBlock{Block: Block{BaseSprite: sprite.BaseSprite{
-			Visible: true,
-			X: X,
-			Y: Y},
-		},
+		Visible: true,
+		X:       X,
+		Y:       Y},
+	},
 	}
 	return b
 }
@@ -533,8 +533,8 @@ func ParseLevel(l string, bg tm.Attribute) []*Block {
 			}
 			b := &Block{BaseSprite: sprite.BaseSprite{
 				Visible: true,
-				X:       ccnt*8,
-				Y:       rcnt*8},
+				X:       ccnt * 8,
+				Y:       rcnt * 8},
 			}
 			switch blk {
 			case '?':

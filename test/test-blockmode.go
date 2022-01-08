@@ -1,8 +1,8 @@
 package main
 
 import (
-	"time"
 	"math/rand"
+	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
 	tm "github.com/pdevine/go-asciisprite/termbox"
@@ -26,7 +26,6 @@ const invader_c1 = `  X     X
  X X   X X
   X X   X X`
 
-
 type Invader struct {
 	sprite.BaseSprite
 	VX      int
@@ -34,32 +33,32 @@ type Invader struct {
 	Timer   int
 	TimeOut int
 }
+
 func randPos() (int, int) {
 	offset := 20
 	var x, y int
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-        x = r.Intn(Width-2*offset) + offset
-        y = r.Intn(Height-2*offset) + offset
-        return x, y
+	x = r.Intn(Width-2*offset) + offset
+	y = r.Intn(Height-2*offset) + offset
+	return x, y
 }
 
 func randVec() (int, int) {
-        var x, y int
-        r := rand.New(rand.NewSource(time.Now().UnixNano()))
-        n := r.Intn(2)
-        x = 1
-        if n == 0 {
-                x = -1
-        }
+	var x, y int
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	n := r.Intn(2)
+	x = 1
+	if n == 0 {
+		x = -1
+	}
 
-        n = r.Intn(2)
-        y = 1
-        if n == 0 {
-                y = -1
-        }
-        return x, y
+	n = r.Intn(2)
+	y = 1
+	if n == 0 {
+		y = -1
+	}
+	return x, y
 }
-
 
 func NewInvader() *Invader {
 	s := &Invader{BaseSprite: sprite.BaseSprite{
@@ -71,6 +70,7 @@ func NewInvader() *Invader {
 	s.BlockCostumes = append(s.BlockCostumes, &s1)
 	s2 := sprite.NewSurfaceFromPng("dog2.png", true)
 	s.BlockCostumes = append(s.BlockCostumes, &s2)
+	s.Init()
 
 	s.X, s.Y = randPos()
 	s.VX, s.VY = randVec()
@@ -116,8 +116,8 @@ func main() {
 	defer tm.Close()
 
 	w, h := tm.Size()
-	Width = w*2
-	Height = h*2
+	Width = w * 2
+	Height = h * 2
 
 	event_queue := make(chan tm.Event)
 	go func() {
@@ -151,8 +151,8 @@ mainloop:
 					}
 				}
 			} else if ev.Type == tm.EventResize {
-				Width = ev.Width*2
-				Height = ev.Height*2
+				Width = ev.Width * 2
+				Height = ev.Height * 2
 				allSprites.Resize(Width, Height)
 			}
 		default:

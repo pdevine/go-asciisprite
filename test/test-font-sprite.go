@@ -36,7 +36,7 @@ func main() {
 		X:       10,
 		Y:       5,
 	}
-        s.AddCostume(sprite.Convert(f.BuildString("Hello, World!")))
+	s.AddCostume(sprite.Convert(f.BuildString("Hello, World!")))
 
 	f2 := sprite.NewJRSMFont()
 	s2 := &sprite.BaseSprite{
@@ -52,14 +52,14 @@ func main() {
 		X:       10,
 		Y:       20,
 	}
-        s3.AddCostume(sprite.Convert(f3.BuildString("The quick brown fox jumps over the lazy dog")))
+	s3.AddCostume(sprite.Convert(f3.BuildString("The quick brown fox jumps over the lazy dog")))
 
 	s4 := &sprite.BaseSprite{
 		Visible: true,
 		X:       10,
 		Y:       25,
 	}
-        s4.AddCostume(sprite.Convert(f2.BuildString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")))
+	s4.AddCostume(sprite.Convert(f2.BuildString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")))
 
 	f4 := sprite.New90sFont()
 	s5 := &sprite.BaseSprite{
@@ -67,15 +67,14 @@ func main() {
 		X:       10,
 		Y:       30,
 	}
-        s5.AddCostume(sprite.Convert(f4.BuildString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")))
+	s5.AddCostume(sprite.Convert(f4.BuildString("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG")))
 
 	s6 := &sprite.BaseSprite{
 		Visible: true,
 		X:       10,
 		Y:       35,
 	}
-        s6.AddCostume(sprite.Convert(f4.BuildString("the quick brown fox jumps over the lazy dog")))
-
+	s6.AddCostume(sprite.Convert(f4.BuildString("the quick brown fox jumps over the lazy dog")))
 
 	txt := "Press 'ESC' to quit."
 	c := sprite.NewCostume(txt, '~')

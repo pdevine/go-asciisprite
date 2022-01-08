@@ -27,4 +27,3 @@ func main() {
 	fmt.Printf("\n%s\n", f3.BuildString("THE QUICK BROWN FOX JUMPED OVER THE LAZY DOG!/.,"))
 	fmt.Printf("\n%s\n", f3.BuildString("0123456789"))
 }
-

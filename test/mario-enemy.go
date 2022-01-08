@@ -76,4 +76,3 @@ type Enemy struct {
 	TimeOut int
 	Timer   int
 }
-

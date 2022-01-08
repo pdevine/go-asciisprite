@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"math"
 	"strings"
-        "time"
+	"time"
 
-        sprite "github.com/pdevine/go-asciisprite"
-        //tm "github.com/gdamore/tcell/termbox"
-        tm "github.com/pdevine/go-asciisprite/termbox"
+	sprite "github.com/pdevine/go-asciisprite"
+	//tm "github.com/gdamore/tcell/termbox"
+	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
 var allSprites sprite.SpriteGroup
@@ -46,7 +46,6 @@ ttBBBBBBBBtt
   BBB  BBB
  bbb    bbb
 bbbb    bbbb`
-
 
 const mario_walk1 = `     RRRRR
     RRRRRRRRR
@@ -98,7 +97,6 @@ tt  BBBBBBB  b
  bbb
   bbb`
 
-
 const mario_turnaround = `     RRRRR
    bRRRRRRRR
   bbbbbbtNt
@@ -115,7 +113,6 @@ const mario_turnaround = `     RRRRR
  b bBBbbbB
  bbbbbB
   bbbb`
-
 
 const mario_jump = `             ttt
       RRRRR  ttt
@@ -219,8 +216,6 @@ const flagpole = `      gg
        gg
        gg`
 
-
-
 type MarioState int
 
 const (
@@ -235,7 +230,7 @@ const FacingRight = 1
 type Mario struct {
 	sprite.BaseSprite
 	AX        float64
-        VX        float64
+	VX        float64
 	Timer     int
 	TimeOut   int
 	State     MarioState
@@ -246,7 +241,7 @@ func InitMario() *Mario {
 	m := &Mario{BaseSprite: sprite.BaseSprite{
 		Visible: true,
 		X:       20,
-	        Y:       11*8},
+		Y:       11 * 8},
 		Direction: FacingRight,
 		TimeOut:   2,
 	}
@@ -256,10 +251,10 @@ func InitMario() *Mario {
 func (s *Mario) Update() {
 	s.VX = s.VX + s.AX
 	s.AX = 0
-	s.VX *= 0.85		// apply friction
+	s.VX *= 0.85 // apply friction
 	s.X += int(math.Round(s.VX))
 	if s.X >= Width/2 {
-		s.X = Width/2
+		s.X = Width / 2
 		for _, blk := range allBlocks {
 			blk.X += -int(math.Round(s.VX))
 		}
@@ -329,24 +324,24 @@ func reverseCostumeText(s string) string {
 }
 
 func main() {
-        // XXX - Wait a bit until the terminal is properly initialized
-        time.Sleep(500 * time.Millisecond)
+	// XXX - Wait a bit until the terminal is properly initialized
+	time.Sleep(500 * time.Millisecond)
 
-        err := tm.Init()
-        if err != nil {
-                panic(err)
-        }
-        defer tm.Close()
+	err := tm.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer tm.Close()
 
-        Width, Height = tm.Size()
+	Width, Height = tm.Size()
 	tm.SetOutputMode(tm.Output256)
 
-        event_queue := make(chan tm.Event)
-        go func() {
-                for {
-                        event_queue <- tm.PollEvent()
-                }
-        }()
+	event_queue := make(chan tm.Event)
+	go func() {
+		for {
+			event_queue <- tm.PollEvent()
+		}
+	}()
 
 	bg := tm.Attribute(BackgroundColor)
 
@@ -356,17 +351,16 @@ func main() {
 	allBlocks = ParseLevel(level1, bg)
 	allSprites.Sprites = append(allSprites.Sprites, m)
 
-
 mainloop:
-        for {
-                tm.Clear(tm.ColorDefault, bg)
+	for {
+		tm.Clear(tm.ColorDefault, bg)
 
-                select {
-                case ev := <-event_queue:
-                        if ev.Type == tm.EventKey {
-                                if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
-                                        break mainloop
-                                }
+		select {
+		case ev := <-event_queue:
+			if ev.Type == tm.EventKey {
+				if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
+					break mainloop
+				}
 				if ev.Key == tm.KeyArrowRight {
 					m.MoveRight()
 				} else if ev.Key == tm.KeyArrowLeft {
@@ -379,15 +373,14 @@ mainloop:
 						m.Walk(m.Direction)
 					}
 				}
-                        } else if ev.Type == tm.EventResize {
-                                Width = ev.Width
-                                Height = ev.Height
-                        }
-                default:
-                        allSprites.Update()
-                        allSprites.Render()
-                        time.Sleep(50 * time.Millisecond)
-                }
-        }
+			} else if ev.Type == tm.EventResize {
+				Width = ev.Width
+				Height = ev.Height
+			}
+		default:
+			allSprites.Update()
+			allSprites.Render()
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
 }
-
