@@ -366,6 +366,62 @@ func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune) error {
 	return nil
 }
 
+// Draw a circle on a Surface
+func (s Surface) Circle(xc, yc, r int, ch rune) error {
+	x := 0
+	y := r
+	d := 3 - 2*r
+
+	s.drawCircle(xc, yc, x, y, ch)
+	for y >= x {
+		x++
+		if d > 0 {
+			y--
+			d = d + 4*(x-y) + 10
+		} else {
+			d = d + 4*x + 6
+		}
+		s.drawCircle(xc, yc, x, y, ch)
+	}
+
+	return nil
+}
+
+func (s Surface) drawCircle(xc, yc, x, y int, ch rune) {
+	if yc+y > 0 && yc+y < len(s.Blocks) {
+		if xc+x > 0 && xc+x < len(s.Blocks[yc+y]) {
+			s.Blocks[yc+y][xc+x] = ch
+		}
+		if xc-x > 0 && xc-x < len(s.Blocks[yc+y]) {
+			s.Blocks[yc+y][xc-x] = ch
+		}
+	}
+	if yc-y > 0 && yc-y < len(s.Blocks) {
+		if xc+x > 0 && xc+x < len(s.Blocks[yc-y]) {
+			s.Blocks[yc-y][xc+x] = ch
+		}
+		if xc-x > 0 && xc-x < len(s.Blocks[yc-y]) {
+			s.Blocks[yc-y][xc-x] = ch
+		}
+	}
+	if yc+x > 0 && yc+x < len(s.Blocks) {
+		if xc+y > 0 && xc+y < len(s.Blocks[yc+x]) {
+			s.Blocks[yc+x][xc+y] = ch
+		}
+		if xc-y > 0 && xc-x < len(s.Blocks[yc+x]) {
+			s.Blocks[yc+x][xc-y] = ch
+		}
+	}
+	if yc-x > 0 && yc-x < len(s.Blocks) {
+		if xc+y > 0 && xc+y < len(s.Blocks[yc-x]) {
+			s.Blocks[yc-x][xc+y] = ch
+		}
+		if xc-y > 0 && xc-y < len(s.Blocks[yc-x]) {
+			s.Blocks[yc-x][xc-y] = ch
+		}
+	}
+}
+
 func getRuneFromColorMap(idx int) rune {
 	for k, v := range ColorMap {
 		if v == tm.Attribute(idx) {
