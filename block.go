@@ -351,18 +351,19 @@ func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 }
 
 // Draw a rectangle on a Surface
-func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune) error {
-	if x0 >= s.Width || x1 >= s.Width {
-		// XXX - put a real error here
-		return nil
+func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune, fill bool) error {
+	if fill {
+		xMin := min(x0, x1)
+		xMax := max(x0, x1)
+		for x := 0; x < xMax-xMin; x++ {
+			s.Line(xMin+x, y0, xMin+x, y1, ch)
+		}
+	} else {
+		s.Line(x0, y0, x1, y0, ch)
+		s.Line(x1, y0, x1, y1, ch)
+		s.Line(x0, y0, x0, y1, ch)
+		s.Line(x0, y1, x1, y1, ch)
 	}
-	if y0 >= s.Height || y1 >= s.Height {
-		return nil
-	}
-	s.Line(x0, y0, x1, y0, ch)
-	s.Line(x1, y0, x1, y1, ch)
-	s.Line(x0, y0, x0, y1, ch)
-	s.Line(x0, y1, x1, y1, ch)
 	return nil
 }
 
