@@ -17,6 +17,7 @@ type Lines struct {
 	sprite.BaseSprite
 	timer   int
 	timeOut int
+	solid   bool
 }
 
 func NewLines() *Lines {
@@ -38,6 +39,7 @@ func (s *Lines) Update() {
 		s.timer = 0
 		surf := sprite.NewSurface(Width, Height, false)
 		s.BlockCostumes[0] = &surf
+		s.solid = Rand.Intn(2) == 1
 	}
 	x := Rand.Intn(Width)
 	y := Rand.Intn(Height)
@@ -46,7 +48,7 @@ func (s *Lines) Update() {
 		m = Height
 	}
 	r := Rand.Intn(m / 2)
-	s.BlockCostumes[0].Circle(x, y, r, 'X')
+	s.BlockCostumes[0].Circle(x, y, r, 'X', s.solid)
 }
 
 func main() {

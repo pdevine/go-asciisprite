@@ -305,11 +305,8 @@ func (s Surface) ConvertToColorCostume(bg tm.Attribute) Costume {
 func (s Surface) Blit(t Surface, x, y int) error {
 	for rcnt, r := range t.Blocks {
 		for ccnt, c := range r {
-			// Only blit in bounds
-			if rcnt+y >= 0 && rcnt+y < s.Height && ccnt+x >= 0 && ccnt+x < s.Width {
-				if c > 0 {
-					s.Blocks[rcnt+y][ccnt+x] = c
-				}
+			if c > 0 {
+				s.Point(ccnt+x, rcnt+y, c)
 			}
 		}
 	}
@@ -330,10 +327,7 @@ func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 		sy = -1
 	}
 	for {
-		// draw at x0, y0 if it's on the surface
-		if x0 >= 0 && x0 < s.Width && y0 >= 0 && y0 < s.Height {
-			s.Blocks[y0][x0] = ch
-		}
+		s.Point(x0, y0, ch)
 		if x0 == x1 && y0 == y1 {
 			break
 		}
@@ -367,13 +361,22 @@ func (s Surface) Rectangle(x0, y0, x1, y1 int, ch rune, fill bool) error {
 	return nil
 }
 
+// Draw a point on a Surface
+func (s Surface) Point(x, y int, ch rune) {
+	if y >= 0 && y < len(s.Blocks) {
+		if x >= 0 && x < len(s.Blocks[y]) {
+			s.Blocks[y][x] = ch
+		}
+	}
+}
+
 // Draw a circle on a Surface
-func (s Surface) Circle(xc, yc, r int, ch rune) error {
+func (s Surface) Circle(xc, yc, r int, ch rune, fill bool) error {
 	x := 0
 	y := r
 	d := 3 - 2*r
 
-	s.drawCircle(xc, yc, x, y, ch)
+	s.drawCircle(xc, yc, x, y, ch, fill)
 	for y >= x {
 		x++
 		if d > 0 {
@@ -382,44 +385,27 @@ func (s Surface) Circle(xc, yc, r int, ch rune) error {
 		} else {
 			d = d + 4*x + 6
 		}
-		s.drawCircle(xc, yc, x, y, ch)
+		s.drawCircle(xc, yc, x, y, ch, fill)
 	}
 
 	return nil
 }
 
-func (s Surface) drawCircle(xc, yc, x, y int, ch rune) {
-	if yc+y > 0 && yc+y < len(s.Blocks) {
-		if xc+x > 0 && xc+x < len(s.Blocks[yc+y]) {
-			s.Blocks[yc+y][xc+x] = ch
-		}
-		if xc-x > 0 && xc-x < len(s.Blocks[yc+y]) {
-			s.Blocks[yc+y][xc-x] = ch
-		}
-	}
-	if yc-y > 0 && yc-y < len(s.Blocks) {
-		if xc+x > 0 && xc+x < len(s.Blocks[yc-y]) {
-			s.Blocks[yc-y][xc+x] = ch
-		}
-		if xc-x > 0 && xc-x < len(s.Blocks[yc-y]) {
-			s.Blocks[yc-y][xc-x] = ch
-		}
-	}
-	if yc+x > 0 && yc+x < len(s.Blocks) {
-		if xc+y > 0 && xc+y < len(s.Blocks[yc+x]) {
-			s.Blocks[yc+x][xc+y] = ch
-		}
-		if xc-y > 0 && xc-x < len(s.Blocks[yc+x]) {
-			s.Blocks[yc+x][xc-y] = ch
-		}
-	}
-	if yc-x > 0 && yc-x < len(s.Blocks) {
-		if xc+y > 0 && xc+y < len(s.Blocks[yc-x]) {
-			s.Blocks[yc-x][xc+y] = ch
-		}
-		if xc-y > 0 && xc-y < len(s.Blocks[yc-x]) {
-			s.Blocks[yc-x][xc-y] = ch
-		}
+func (s Surface) drawCircle(xc, yc, x, y int, ch rune, fill bool) {
+	if fill {
+		s.Line(xc+x, yc+y, xc+x, yc-y, ch)
+		s.Line(xc-x, yc+y, xc-x, yc-y, ch)
+		s.Line(xc+y, yc+x, xc-y, yc+x, ch)
+		s.Line(xc+y, yc-x, xc-y, yc-x, ch)
+	} else {
+		s.Point(xc+x, yc+y, ch)
+		s.Point(xc-x, yc+y, ch)
+		s.Point(xc+x, yc-y, ch)
+		s.Point(xc-x, yc-y, ch)
+		s.Point(xc+y, yc+x, ch)
+		s.Point(xc-y, yc+x, ch)
+		s.Point(xc+y, yc-x, ch)
+		s.Point(xc-y, yc-x, ch)
 	}
 }
 
