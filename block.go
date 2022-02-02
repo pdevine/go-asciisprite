@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"sort"
 	"strings"
 
 	palette "github.com/pdevine/go-asciisprite/palette"
@@ -315,6 +316,15 @@ func (s Surface) Blit(t Surface, x, y int) error {
 
 // Draw a line between two points on a Surface
 func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
+	points := findPointsInLine(x0, y0, x1, y1)
+	for _, p := range points {
+		s.Point(p.X, p.Y, ch)
+	}
+	return nil
+}
+
+func findPointsInLine(x0, y0, x1, y1 int) []Point {
+	var points []Point
 	dx := abs(x1 - x0)
 	dy := -abs(y1 - y0)
 	err := dx + dy
@@ -327,7 +337,7 @@ func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 		sy = -1
 	}
 	for {
-		s.Point(x0, y0, ch)
+		points = append(points, Point{x0, y0})
 		if x0 == x1 && y0 == y1 {
 			break
 		}
@@ -341,7 +351,7 @@ func (s Surface) Line(x0, y0, x1, y1 int, ch rune) error {
 			y0 += sy
 		}
 	}
-	return nil
+	return points
 }
 
 // Draw a rectangle on a Surface
@@ -368,6 +378,53 @@ func (s Surface) Point(x, y int, ch rune) {
 			s.Blocks[y][x] = ch
 		}
 	}
+}
+
+// Draw a triangle on a Surface
+func (s Surface) Triangle(x0, y0, x1, y1, x2, y2 int, ch rune, fill bool) error {
+	if fill {
+		points := []Point{
+			Point{x0, y0},
+			Point{x1, y1},
+			Point{x2, y2},
+		}
+
+		sort.Slice(points, func(i, j int) bool {
+			return points[i].Y < points[j].Y
+		})
+
+		pMin := points[0]
+		pMid := points[1]
+		pMax := points[2]
+		pl := findPointsInLine(pMin.X, pMin.Y, pMax.X, pMax.Y)
+
+		var opl []Point
+
+		// don't put in horizontal lines
+		if pMin.Y == pMid.Y {
+			opl = append(opl, pMid)
+		} else {
+			opl = append(opl, findPointsInLine(pMin.X, pMin.Y, pMid.X, pMid.Y)...)
+		}
+		if pMax.Y == pMid.Y {
+			opl = append(opl, pMid)
+		} else {
+			opl = append(opl, findPointsInLine(pMax.X, pMax.Y, pMid.X, pMid.Y)...)
+		}
+
+		for _, p := range pl {
+			for _, op := range opl {
+				if p.Y == op.Y {
+					s.Line(p.X, p.Y, op.X, op.Y, ch)
+				}
+			}
+		}
+	} else {
+		s.Line(x0, y0, x1, y1, ch)
+		s.Line(x1, y1, x2, y2, ch)
+		s.Line(x2, y2, x0, y0, ch)
+	}
+	return nil
 }
 
 // Draw a circle on a Surface
