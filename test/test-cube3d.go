@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"math/rand"
+	"sort"
 	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
@@ -32,7 +33,27 @@ func NewTriangle(a, b, c *Point3D, ch rune) *Triangle {
 	return t
 }
 
+func (t *Triangle) isBackFace() bool {
+	cax := t.C.ScreenX() - t.A.ScreenX()
+	cay := t.C.ScreenY() - t.A.ScreenY()
+
+	bcx := t.B.ScreenX() - t.C.ScreenX()
+	bcy := t.B.ScreenY() - t.C.ScreenY()
+
+	return cax * bcy > cay * bcx
+}
+
+func (t *Triangle) Depth() float64 {
+	zPos := math.Min(t.A.Z, t.B.Z)
+	zPos = math.Min(zPos, t.C.Z)
+	return zPos
+}
+
 func (t *Triangle) Draw(surf *sprite.Surface) {
+	if t.isBackFace() {
+		return
+	}
+
 	surf.Triangle(
 		t.A.ScreenX(), t.A.ScreenY(),
 		t.B.ScreenX(), t.B.ScreenY(),
@@ -130,130 +151,47 @@ func NewSquare3D() *Square3D {
 	}
 
 	s.points = []*Point3D{
-		NewPoint3D(-25, -35, 10),
-		NewPoint3D( 15, -35, 10),
-		NewPoint3D(-25, -25, 10),
-		NewPoint3D(-15, -25, 10),
-		NewPoint3D( 15, -25, 10),
+		NewPoint3D(-30, -30, -30),
+		NewPoint3D( 30, -30, -30),
+		NewPoint3D( 30,  30, -30),
+		NewPoint3D(-30,  30, -30),
 
-		// 5
-
-		NewPoint3D( 25, -25, 10),
-		NewPoint3D(-35, -25, 10),
-		NewPoint3D( 35, -25, 10),
-		NewPoint3D(-35, -15, 10),
-		NewPoint3D( 35, -15, 10),
-
-		// 10
-
-		NewPoint3D(-45, -15, 10),
-		NewPoint3D(-25, -15, 10),
-		NewPoint3D(-15, -15, 10),
-		NewPoint3D( 15, -15, 10),
-		NewPoint3D( 25, -15, 10),
-
-		// 15
-
-		NewPoint3D(-45,  -5, 10),
-		NewPoint3D(-35,  -5, 10),
-		NewPoint3D(-25,  -5, 10),
-		NewPoint3D(-15,  -5, 10),
-		NewPoint3D( 15,  -5, 10),
-
-		// 20
-
-		NewPoint3D( 25,  -5, 10),
-		NewPoint3D( 35,  -5, 10),
-		NewPoint3D( 45,  -5, 10),
-		NewPoint3D(-55,  -5, 10),
-		NewPoint3D( 55,  -5, 10),
-
-		// 25
-
-		NewPoint3D(-55,   5, 10),
-		NewPoint3D(-35,   5, 10),
-		NewPoint3D( 35,   5, 10),
-		NewPoint3D( 55,   5, 10),
-		NewPoint3D(-35,  15, 10),
-
-		// 30
-
-		NewPoint3D(-25,  15, 10),
-		NewPoint3D( 25,  15, 10),
-		NewPoint3D( 35,  15, 10),
-		NewPoint3D(-55,  25, 10),
-		NewPoint3D(-45,  25, 10),
-
-		// 35
-
-		NewPoint3D(-35,  25, 10),
-		NewPoint3D(-25,  25, 10),
-		NewPoint3D( -5,  25, 10),
-		NewPoint3D(  5,  25, 10),
-		NewPoint3D( 25,  25, 10),
-
-		// 40
-
-		NewPoint3D( 35,  25, 10),
-		NewPoint3D( 45,  25, 10),
-		NewPoint3D( 55,  25, 10),
-		NewPoint3D(-25,  35, 10),
-		NewPoint3D( -5,  35, 10),
-
-		// 45
-
-		NewPoint3D(  5,  35, 10),
-		NewPoint3D( 25,  35, 10),
-		NewPoint3D(-45,   5, 10),
-		NewPoint3D( 45,   5, 10),
-		NewPoint3D(-15, -35, 10),
-
-		// 50
-
-		NewPoint3D( 25, -35, 10),
-		NewPoint3D( 45, -15, 10),
+		NewPoint3D(-30, -30,  30),
+		NewPoint3D( 30, -30,  30),
+		NewPoint3D( 30,  30,  30),
+		NewPoint3D(-30,  30,  30),
 	}
 
 	for _, p := range s.points {
 		p.SetVanishingPoint(Width/2, Height/2)
-		p.SetCenter(0, 0, 100)
+		p.SetCenter(0, 0,  10)
 	}
 
 	s.triangles = []*Triangle{
-		NewTriangle(s.points[0], s.points[49], s.points[3], 'X'),
-		NewTriangle(s.points[0], s.points[3], s.points[2], 'X'),
-		NewTriangle(s.points[1], s.points[50], s.points[5], 'X'),
-		NewTriangle(s.points[1], s.points[5], s.points[4], 'X'),
+		// front
+		NewTriangle(s.points[0], s.points[1], s.points[2], 'X'),
+		NewTriangle(s.points[0], s.points[2], s.points[3], 'X'),
 
-		NewTriangle(s.points[6], s.points[7], s.points[9], 'X'),
-		NewTriangle(s.points[6], s.points[9], s.points[8], 'X'),
-		NewTriangle(s.points[10], s.points[11], s.points[17], 'X'),
-		NewTriangle(s.points[10], s.points[17], s.points[15], 'X'),
-		NewTriangle(s.points[12], s.points[13], s.points[19], 'X'),
-		NewTriangle(s.points[12], s.points[19], s.points[18], 'X'),
-		NewTriangle(s.points[14], s.points[51], s.points[22], 'X'),
-		NewTriangle(s.points[14], s.points[22], s.points[20], 'X'),
+		// top
+		NewTriangle(s.points[0], s.points[5], s.points[1], 'b'),
+		NewTriangle(s.points[0], s.points[4], s.points[5], 'b'),
 
-		NewTriangle(s.points[23], s.points[16], s.points[26], 'X'),
-		NewTriangle(s.points[23], s.points[26], s.points[25], 'X'),
-		NewTriangle(s.points[16], s.points[21], s.points[32], 'X'),
-		NewTriangle(s.points[16], s.points[32], s.points[29], 'X'),
-		NewTriangle(s.points[21], s.points[24], s.points[28], 'X'),
-		NewTriangle(s.points[21], s.points[28], s.points[27], 'X'),
+		// back
+		NewTriangle(s.points[4], s.points[6], s.points[5], 'N'),
+		NewTriangle(s.points[4], s.points[7], s.points[6], 'N'),
 
-		NewTriangle(s.points[25], s.points[47], s.points[34], 'X'),
-		NewTriangle(s.points[25], s.points[34], s.points[33], 'X'),
-		NewTriangle(s.points[29], s.points[30], s.points[36], 'X'),
-		NewTriangle(s.points[29], s.points[36], s.points[35], 'X'),
-		NewTriangle(s.points[31], s.points[32], s.points[40], 'X'),
-		NewTriangle(s.points[31], s.points[40], s.points[39], 'X'),
-		NewTriangle(s.points[48], s.points[28], s.points[42], 'X'),
-		NewTriangle(s.points[48], s.points[42], s.points[41], 'X'),
+		// bottom
+		NewTriangle(s.points[3], s.points[2], s.points[6], 'G'),
+		NewTriangle(s.points[3], s.points[6], s.points[7], 'G'),
 
-		NewTriangle(s.points[36], s.points[37], s.points[44], 'X'),
-		NewTriangle(s.points[36], s.points[44], s.points[43], 'X'),
-		NewTriangle(s.points[38], s.points[39], s.points[46], 'X'),
-		NewTriangle(s.points[38], s.points[46], s.points[45], 'X'),
+		// right
+		NewTriangle(s.points[1], s.points[5], s.points[6], 'B'),
+		NewTriangle(s.points[1], s.points[6], s.points[2], 'B'),
+
+		// left
+		NewTriangle(s.points[4], s.points[0], s.points[3], 'p'),
+		NewTriangle(s.points[4], s.points[3], s.points[7], 'p'),
+
 	}
 
 	surf := sprite.NewSurface(Width, Height, false)
@@ -263,9 +201,9 @@ func NewSquare3D() *Square3D {
 }
 
 func (s *Square3D) Update() {
-	angleX := 0.0
+	angleX := 0.05
 	angleY := 0.1
-	angleZ := 0.0
+	angleZ := 0.05
 
 	for _, p := range s.points {
 		p.RotateX(angleX)
@@ -273,12 +211,24 @@ func (s *Square3D) Update() {
 		p.RotateZ(angleZ)
 	}
 
+	sort.Slice(s.triangles, func(i, j int) bool {
+		return s.triangles[i].Depth() > s.triangles[j].Depth()
+	})
+
 	surf := sprite.NewSurface(Width, Height, false)
 	for _, t := range s.triangles {
 		t.Draw(&surf)
 	}
 
 	s.BlockCostumes[0] = &surf
+}
+
+func setPalette() {
+	sprite.ColorMap['b'] = tm.Attribute(99)
+	sprite.ColorMap['N'] = tm.ColorNavy
+	sprite.ColorMap['G'] = tm.ColorGray
+	sprite.ColorMap['B'] = tm.Attribute(111)
+	sprite.ColorMap['p'] = tm.Attribute(131)
 }
 
 func main() {
@@ -295,6 +245,8 @@ func main() {
 	Width = w * 2
 	Height = h * 2
 	Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	setPalette()
 
 	event_queue := make(chan tm.Event)
 	go func() {
