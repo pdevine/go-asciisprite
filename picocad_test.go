@@ -160,3 +160,49 @@ func TestParsePicoCAD2(t *testing.T) {
 	}
 	t.Logf("textured faces filled %d pixels total", found)
 }
+
+func TestPicoCAD2Animation(t *testing.T) {
+	m, err := LoadPicoCAD("test/testdata/helicopter.picocad2")
+	if err != nil {
+		t.Fatalf("LoadPicoCAD: %v", err)
+	}
+	if m.Root == nil {
+		t.Fatalf("no scene graph")
+	}
+	if m.Duration != 6.4 {
+		t.Errorf("expected duration 6.4, got %v", m.Duration)
+	}
+
+	// find the rotor node and check its z-rot animation spins by 20
+	// (full delta) between t=1.5 and t=6.4
+	var rotor *PicoCADNode
+	var findNode func(n *PicoCADNode)
+	findNode = func(n *PicoCADNode) {
+		if n.Name == "back rotor" {
+			rotor = n
+		}
+		for _, c := range n.Nodes {
+			findNode(c)
+		}
+	}
+	findNode(m.Root)
+	if rotor == nil {
+		t.Fatalf("no back rotor node")
+	}
+	if len(rotor.Motions) == 0 {
+		t.Fatalf("back rotor has no motions")
+	}
+
+	// t=0 vs t=end should give different world verts
+	var at, bt [3]float64
+	rotor.Walk(func(verts [][3]float64, faces []*PicoCADFace) {
+		at = verts[0]
+	}, 0.0)
+	rotor.Walk(func(verts [][3]float64, faces []*PicoCADFace) {
+		bt = verts[0]
+	}, 6.3)
+	if at == bt {
+		t.Errorf("rotor did not move between t=0 and t=6.3 (%v)", at)
+	}
+	t.Logf("rotor vert[0]: t=0 -> %v, t=6.3 -> %v", at, bt)
+}

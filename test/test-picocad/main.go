@@ -21,11 +21,12 @@ var dist float64 = 120
 
 type PicoCADDemo struct {
 	sprite.BaseSprite
-	model   *sprite.PicoCADModel
-	orig    [][3]float64 // normalised model-space verts, unrotated
-	points  []*Point3D   // rotated this frame
-	// faces sorted each frame
-	faces   []*sprite.PicoCADFace
+	model  *sprite.PicoCADModel
+	points []*Point3D // per-frame world points
+	t      float64    // animation clock (seconds)
+	scale  float64
+	centre [3]float64
+	ox, oy float64
 }
 
 type Point3D struct {
@@ -107,13 +108,6 @@ func shadeForFace(a, b, c *Point3D) float64 {
 	return 0.25 + 0.75*d
 }
 
-func faceDepth(points []*Point3D, f *sprite.PicoCADFace) float64 {
-	z := points[f.Verts[0]].Z
-	z = math.Min(z, points[f.Verts[1]].Z)
-	z = math.Min(z, points[f.Verts[2]].Z)
-	return z
-}
-
 func NewPicoCADDemo(fn string, ox, oy float64) *PicoCADDemo {
 	model, err := sprite.LoadPicoCAD(fn)
 	if err != nil {
@@ -125,7 +119,9 @@ func NewPicoCADDemo(fn string, ox, oy float64) *PicoCADDemo {
 		model:      model,
 	}
 
-	// normalise the model's size to about 45 screen cells and centre it
+	// normalise the model's size to about 45 screen cells. Animated models
+	// are evaluated frame by frame from their scene graph; static models
+	// use the flattened vert list as before.
 	var minX, maxX, minY, maxY, minZ, maxZ float64
 	for i, v := range model.Verts {
 		if i == 0 {
@@ -142,25 +138,9 @@ func NewPicoCADDemo(fn string, ox, oy float64) *PicoCADDemo {
 		maxZ = math.Max(maxZ, v[2])
 	}
 	size := math.Max(maxX-minX, math.Max(maxY-minY, maxZ-minZ))
-	scale := 45.0 / size
-	cX := (minX + maxX) / 2
-	cY := (minY + maxY) / 2
-	cZ := (minZ + maxZ) / 2
-
-	for _, v := range model.Verts {
-		d.orig = append(d.orig, [3]float64{(v[0] - cX) * scale, (v[1] - cY) * scale, (v[2] - cZ) * scale})
-	}
-
-	// rotated points for the first frame
-	d.points = make([]*Point3D, len(d.orig))
-	for i := range d.points {
-		d.points[i] = NewPoint3D(0, 0, 0)
-		d.points[i].SetVanishingPoint(Width/2, Height/2)
-		d.points[i].SetCenter(ox, oy, dist)
-	}
-
-	d.faces = make([]*sprite.PicoCADFace, len(model.Faces))
-	copy(d.faces, model.Faces)
+	d.scale = 45.0 / size
+	d.centre = [3]float64{(minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2}
+	d.ox, d.oy = ox, oy
 
 	surf := sprite.NewSurface(Width, Height, false)
 	d.BlockCostumes = append(d.BlockCostumes, &surf)
@@ -169,26 +149,89 @@ func NewPicoCADDemo(fn string, ox, oy float64) *PicoCADDemo {
 }
 
 func (d *PicoCADDemo) Update() {
-	// follow camera distance changes
-	for i := range d.points {
-		d.points[i].cZ = dist
-	}
-	for i, v := range d.orig {
-		rv := rotateXYZ(v, rotX, rotY)
-		d.points[i].X = rv[0]
-		d.points[i].Y = rv[1]
-		d.points[i].Z = rv[2]
+	// advance the animation clock
+	t := 0.0
+	if d.model.Duration > 0 {
+		d.t += 0.05
+		if d.t > d.model.Duration {
+			d.t = 0
+		}
+		t = d.t
 	}
 
-	sort.Slice(d.faces, func(i, j int) bool {
-		return faceDepth(d.points, d.faces[i]) > faceDepth(d.points, d.faces[j])
+	// one flat draw list of (world verts, faces) for this frame
+	type chunk struct {
+		verts [][3]float64
+		faces []*sprite.PicoCADFace
+	}
+	var chunks []chunk
+	if d.model.Root != nil {
+		d.model.Root.Walk(func(verts [][3]float64, faces []*sprite.PicoCADFace) {
+			chunks = append(chunks, chunk{verts, faces})
+		}, t)
+	} else {
+		chunks = append(chunks, chunk{d.model.Verts, d.model.Faces})
+	}
+
+	// transform world verts through normalise, rotate, camera
+	i := 0
+	type faceRef struct {
+		f     *sprite.PicoCADFace
+		base  int
+	}
+	var refs []faceRef
+	surf := sprite.NewSurface(Width, Height, false)
+	for _, c := range chunks {
+		base := i
+		total := len(c.verts)
+		if len(d.points) < i+total {
+			np := make([]*Point3D, i+total)
+			copy(np, d.points)
+			for j := len(d.points); j < i+total; j++ {
+				np[j] = NewPoint3D(0, 0, 0)
+				np[j].SetVanishingPoint(Width/2, Height/2)
+			}
+			d.points = np
+		}
+		for j, v := range c.verts {
+			pt := d.points[i+j]
+			// normalise, invert Y (picoCAD 2 is y-up, screen is y-down),
+			// then rotate, then push back by camera distance
+			rv := rotateXYZ([3]float64{
+				(v[0] - d.centre[0]) * d.scale,
+				-(v[1] - d.centre[1]) * d.scale,
+				(v[2] - d.centre[2]) * d.scale,
+			}, rotX, rotY)
+			pt.X = rv[0]
+			pt.Y = rv[1]
+			pt.Z = rv[2]
+			pt.cX = d.ox
+			pt.cY = d.oy
+			pt.cZ = dist
+		}
+		i += total
+		for _, f := range c.faces {
+			refs = append(refs, faceRef{f, base})
+		}
+	}
+
+	sort.Slice(refs, func(a, b int) bool {
+		za := math.Inf(1)
+		for _, vi := range refs[a].f.Verts {
+			za = math.Min(za, d.points[refs[a].base+vi].Z)
+		}
+		zb := math.Inf(1)
+		for _, vi := range refs[b].f.Verts {
+			zb = math.Min(zb, d.points[refs[b].base+vi].Z)
+		}
+		return za > zb
 	})
 
-	surf := sprite.NewSurface(Width, Height, false)
-	for _, f := range d.faces {
-		a := d.points[f.Verts[0]]
-		b := d.points[f.Verts[1]]
-		c := d.points[f.Verts[2]]
+	for _, r := range refs {
+		f := r.f
+		a := d.points[r.base+f.Verts[0]]
+		b := d.points[r.base+f.Verts[1]]
+		c := d.points[r.base+f.Verts[2]]
 
 		// backface culling unless the face is marked NoCull
 		if !f.NoCull {
@@ -275,6 +318,16 @@ mainloop:
 				if ev.Key == tm.KeyEsc {
 					break mainloop
 				}
+				// arrows rotate the scene manually
+				if ev.Key == tm.KeyArrowLeft {
+					rotY -= 0.1
+				} else if ev.Key == tm.KeyArrowRight {
+					rotY += 0.1
+				} else if ev.Key == tm.KeyArrowUp {
+					rotX -= 0.1
+				} else if ev.Key == tm.KeyArrowDown {
+					rotX += 0.1
+				}
 				// + / - zoom the camera in and out
 				if ev.Ch == '+' || ev.Ch == '=' {
 					dist = math.Max(dist-15, 10)
@@ -287,8 +340,6 @@ mainloop:
 				allSprites.Resize(Width, Height)
 			}
 		default:
-			rotX += 0.02
-			rotY += 0.05
 			allSprites.Update()
 			allSprites.Render()
 			time.Sleep(50 * time.Millisecond)
