@@ -269,3 +269,23 @@ func Index(t color.RGBA) int {
 	}
 	return -1
 }
+
+// NearestIndex returns the index of the closest color in the xterm palette
+// to the given color using euclidean distance in RGB space. Indices are
+// offset by 1 to match termbox attribute values.
+func NearestIndex(t color.RGBA) int {
+	best := -1
+	bestDist := int64(-1)
+	for cnt, c := range Xterm {
+		r, g, b, _ := c.RGBA()
+		dr := int64(r>>8) - int64(t.R)
+		dg := int64(g>>8) - int64(t.G)
+		db := int64(b>>8) - int64(t.B)
+		dist := dr*dr + dg*dg + db*db
+		if bestDist < 0 || dist < bestDist {
+			bestDist = dist
+			best = cnt
+		}
+	}
+	return best + 1
+}

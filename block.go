@@ -155,9 +155,9 @@ func NewSurfaceFromImage(img image.Image, alpha bool) Surface {
 			// we don't properly support the alpha channel, so only draw the pixel if
 			// the alpha is set
 			if a > 0 {
-				// we only support 256 colour mode, so get the index from the palette
-				// and create an entry in our colour map if needed
-				i := palette.Index(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)})
+				// we only support 256 colour mode, so find the closest colour
+				// in the palette and create an entry in our colour map if needed
+				i := palette.NearestIndex(color.RGBA{uint8(r), uint8(g), uint8(b), uint8(a)})
 				if i > -1 {
 					m[y][x] = getRuneFromColorMap(i)
 				}
@@ -425,6 +425,107 @@ func (s Surface) Triangle(x0, y0, x1, y1, x2, y2 int, ch rune, fill bool) error 
 		s.Line(x2, y2, x0, y0, ch)
 	}
 	return nil
+}
+
+// TexturedTriangle draws a filled triangle on the Surface, sampling colors
+// from a texture Surface using barycentric interpolation of the given UV
+// coordinates. UV values are normalized (0-1) into tex's pixel space.
+// Pixels sampled with a zero rune in the texture are treated as transparent.
+// shade scales the brightness of sampled pixels (0.0 is black, 1.0 is
+// unshaded); shading is quantized to the closest colour in the xterm palette.
+func (s Surface) TexturedTriangle(x0, y0, x1, y1, x2, y2 int, tex Surface, u0, v0, u1, v1, u2, v2, shade float64) {
+	if shade <= 0 {
+		return
+	}
+
+	minX := min(x0, min(x1, x2))
+	maxX := max(x0, max(x1, x2))
+	minY := min(y0, min(y1, y2))
+	maxY := max(y0, max(y1, y2))
+
+	d := (y1-y2)*(x0-x2) + (x2-x1)*(y0-y2)
+	if d == 0 {
+		return
+	}
+
+	for y := minY; y <= maxY; y++ {
+		if y < 0 || y >= s.Height {
+			continue
+		}
+		for x := minX; x <= maxX; x++ {
+			if x < 0 || x >= s.Width {
+				continue
+			}
+			w0 := float64((y1-y2)*(x-x2)+(x2-x1)*(y-y2)) / float64(d)
+			w1 := float64((y2-y0)*(x-x2)+(x0-x2)*(y-y2)) / float64(d)
+			w2 := 1.0 - w0 - w1
+			if w0 < 0 || w1 < 0 || w2 < 0 {
+				continue
+			}
+			u := w0*u0 + w1*u1 + w2*u2
+			v := w0*v0 + w1*v1 + w2*v2
+			tx := int(u * float64(tex.Width))
+			ty := int(v * float64(tex.Height))
+			ch := tex.Pixel(tx, ty)
+			if ch != 0 {
+				s.Point(x, y, ShadeRune(ch, shade))
+			}
+		}
+	}
+}
+
+// ShadeRune applies a brightness factor to a ColorMap rune, returning
+// the nearest-colour rune at the scaled brightness. Returns 0 for runes
+// not in the ColorMap.
+func ShadeRune(ch rune, shade float64) rune {
+	attr, ok := ColorMap[ch]
+	if !ok {
+		return 0
+	}
+	// attr-1 is the palette index
+	pidx := int(attr) - 1
+	if pidx < 0 || pidx >= len(palette.Xterm) {
+		return ch
+	}
+	r, g, b, _ := palette.Xterm[pidx].RGBA()
+	if shade > 1.0 {
+		shade = 1.0
+	}
+	if shade <= 0 {
+		return ch
+	}
+	c := imageColorRGBA(uint8(r>>8), uint8(g>>8), uint8(b>>8), shade)
+	return getRuneFromColorMap(palette.NearestIndex(c))
+}
+
+func imageColorRGBA(r, g, b uint8, shade float64) color.RGBA {
+	return color.RGBA{
+		uint8(float64(r) * shade),
+		uint8(float64(g) * shade),
+		uint8(float64(b) * shade),
+		0xff,
+	}
+}
+
+// Pixel returns the rune at x, y on the Surface, clamped to the Surface's
+// bounds. Returns 0 for empty cells.
+func (s Surface) Pixel(x, y int) rune {
+	if x < 0 {
+		x = 0
+	}
+	if x >= s.Width {
+		x = s.Width - 1
+	}
+	if y < 0 {
+		y = 0
+	}
+	if y >= s.Height {
+		y = s.Height - 1
+	}
+	if len(s.Blocks) == 0 || len(s.Blocks[y]) == 0 {
+		return 0
+	}
+	return s.Blocks[y][x]
 }
 
 // Draw a circle on a Surface
