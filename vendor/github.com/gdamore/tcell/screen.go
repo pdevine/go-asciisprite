@@ -197,6 +197,18 @@ type Screen interface {
 	// Beep attempts to sound an OS-dependent audible alert and returns an error
 	// when unsuccessful.
 	Beep() error
+
+	// EnableEnhancedKeys requests extended keyboard reporting (the kitty
+	// keyboard protocol) from the terminal, probing for support first.
+	// It returns the granted progressive-enhancement flags, or 0 when the
+	// terminal does not support the protocol (in which case keyboard
+	// handling is unchanged from legacy mode).  Pass a combination of the
+	// KbdEnh* constants.  Must be called after Init.
+	EnableEnhancedKeys(flags int) int
+
+	// DisableEnhancedKeys restores the terminal's previous keyboard mode,
+	// undoing a successful EnableEnhancedKeys call.
+	DisableEnhancedKeys()
 }
 
 // NewScreen returns a default Screen suitable for the user's terminal

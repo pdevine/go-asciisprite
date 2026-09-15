@@ -27,6 +27,7 @@ var outMode OutputMode
 
 // Init initializes the screen for use.
 func Init() error {
+	enhanced = false
 	outMode = OutputNormal
 	//outMode = Output256
 	if s, e := tcell.NewScreen(); e != nil {
@@ -38,6 +39,27 @@ func Init() error {
 		screen = s
 		return nil
 	}
+}
+
+// InitEnhancedKeys initializes the screen for use and requests enhanced
+// (kitty protocol) keyboard reporting: disambiguated escape codes, key
+// repeat/release events, and press/release reporting for text-producing
+// keys.  In enhanced mode key events arrive as EventKeyPress,
+// EventKeyRepeat, and EventKeyRelease instead of EventKey.
+//
+// The return value is the set of enhancement flags granted by the
+// terminal; 0 means the terminal does not support the protocol and the
+// screen is running exactly as if Init had been called (key events
+// arrive as EventKey).  Key, Ch, and Mod fields carry the same values in
+// both modes.
+func InitEnhancedKeys() (int, error) {
+	if err := Init(); err != nil {
+		return 0, err
+	}
+	flags := screen.EnableEnhancedKeys(tcell.KbdEnhDisambiguate |
+		tcell.KbdEnhEventTypes | tcell.KbdEnhAllKeys)
+	enhanced = flags != 0
+	return flags, nil
 }
 
 // Close cleans up the terminal, restoring terminal modes, etc.
@@ -620,13 +642,26 @@ type Event struct {
 // Event types.
 const (
 	EventNone EventType = iota
+	// EventKey is a key press delivered in legacy mode (Init).  In
+	// enhanced mode (InitEnhancedKeys with a supporting terminal) all
+	// key events arrive as EventKeyPress/EventKeyRepeat/EventKeyRelease
+	// and EventKey is never emitted.
 	EventKey
 	EventResize
 	EventMouse
 	EventInterrupt
 	EventError
 	EventRaw
+	// EventKeyPress, EventKeyRepeat, and EventKeyRelease are the
+	// enhanced-mode key events (kitty keyboard protocol).
+	EventKeyPress
+	EventKeyRepeat
+	EventKeyRelease
 )
+
+// enhanced is true when InitEnhancedKeys negotiated kitty protocol
+// support with the terminal.
+var enhanced bool
 
 // Keys codes.
 const (
@@ -692,7 +727,10 @@ const (
 
 // Modifiers.
 const (
-	ModAlt = Modifier(tcell.ModAlt)
+	ModShift = Modifier(tcell.ModShift)
+	ModCtrl  = Modifier(tcell.ModCtrl)
+	ModAlt   = Modifier(tcell.ModAlt)
+	ModMeta  = Modifier(tcell.ModMeta)
 )
 
 func makeEvent(tev tcell.Event) Event {
@@ -714,8 +752,25 @@ func makeEvent(tev tcell.Event) Event {
 			}
 		}
 		mod := tev.Modifiers()
+		if !enhanced {
+			return Event{
+				Type: EventKey,
+				Key:  Key(k),
+				Ch:   ch,
+				Mod:  Modifier(mod),
+			}
+		}
+		var typ EventType
+		switch tev.EventType() {
+		case tcell.KeyEventRepeat:
+			typ = EventKeyRepeat
+		case tcell.KeyEventRelease:
+			typ = EventKeyRelease
+		default:
+			typ = EventKeyPress
+		}
 		return Event{
-			Type: EventKey,
+			Type: typ,
 			Key:  Key(k),
 			Ch:   ch,
 			Mod:  Modifier(mod),

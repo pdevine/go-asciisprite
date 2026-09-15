@@ -47,6 +47,28 @@ type EventKey struct {
 	mod ModMask
 	key Key
 	ch  rune
+	typ KeyEventType
+}
+
+// KeyEventType distinguishes press, repeat, and release events.  Only
+// terminals supporting the kitty keyboard protocol (see kitty_keys.go)
+// can report repeat/release; otherwise every EventKey is KeyEventPress.
+type KeyEventType int
+
+const (
+	// KeyEventPress is a key press (and the only type legacy modes emit).
+	KeyEventPress KeyEventType = iota
+	// KeyEventRepeat is a synthesized repeat while the key is held.
+	KeyEventRepeat
+	// KeyEventRelease is a key release.
+	KeyEventRelease
+)
+
+// EventType indicates whether this event is a press, repeat, or release.
+// Events from terminals without kitty keyboard protocol support always
+// report KeyEventPress.
+func (ev *EventKey) EventType() KeyEventType {
+	return ev.typ
 }
 
 // When returns the time when this Event was created, which should closely

@@ -113,6 +113,15 @@ type tScreen struct {
 	escaped   bool
 	buttondn  bool
 
+	// kitty keyboard protocol state (see kitty_parse.go).  enhancedKeys
+	// holds the granted progressive-enhancement flags (0 = legacy mode);
+	// kittySupported records the flags reported by the terminal's
+	// CSI ? flags u reply during detection; kittyReplyCh hands that reply
+	// from the input parser back to EnableEnhancedKeys.
+	enhancedKeys   int
+	kittySupported int
+	kittyReplyCh   chan int
+
 	sync.Mutex
 }
 
@@ -394,19 +403,27 @@ outer:
 
 func (t *tScreen) Fini() {
 	t.Lock()
-	defer t.Unlock()
 
-	ti := t.ti
 	t.cells.Resize(0, 0)
-	t.TPuts(ti.ShowCursor)
-	t.TPuts(ti.AttrOff)
-	t.TPuts(ti.Clear)
-	t.TPuts(ti.ExitCA)
-	t.TPuts(ti.ExitKeypad)
-	t.TPuts(ti.TParm(ti.MouseMode, 0))
+	// leave the alternate screen and restore cursor/attributes first
+	t.TPuts(t.ti.ShowCursor)
+	t.TPuts(t.ti.AttrOff)
+	t.TPuts(t.ti.Clear)
+	t.TPuts(t.ti.ExitCA)
+	t.TPuts(t.ti.ExitKeypad)
+	t.TPuts(t.ti.TParm(t.ti.MouseMode, 0))
 	t.curstyle = Style(-1)
 	t.clear = false
 	t.fini = true
+	t.Unlock()
+
+	// last of all, restore the terminal's previous keyboard mode: after
+	// the alt-screen exit, so the pop lands on the screen stack that
+	// observed the push, and visibly after the stream of teardown codes
+	t.DisableEnhancedKeys()
+
+	t.Lock()
+	defer t.Unlock()
 
 	select {
 	case <-t.quit:
@@ -1237,6 +1254,25 @@ func (t *tScreen) collectEventsFromInput(buf *bytes.Buffer, expire bool) []Event
 		}
 
 		partials := 0
+
+		// kitty keyboard protocol: consume enhancement-flag query
+		// replies always (even in legacy mode, so detection responses
+		// never leak to the app), and decode CSI u key events when
+		// enhanced mode is active.
+		if part, comp := t.parseKittyReply(buf, expire); comp || part {
+			if part {
+				partials++
+			} else {
+				continue
+			}
+		}
+		if t.enhancedKeys != 0 {
+			if part, comp := t.parseKittyStage(buf, &res, expire); comp {
+				continue
+			} else if part {
+				partials++
+			}
+		}
 
 		if part, comp := t.parseRune(buf, &res); comp {
 			continue

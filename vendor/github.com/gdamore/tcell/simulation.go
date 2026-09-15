@@ -510,3 +510,13 @@ func (s *simscreen) HasKey(Key) bool {
 func (s *simscreen) Beep() error {
 	return nil
 }
+
+// EnableEnhancedKeys implements Screen; the simulation screen has no
+// real terminal to negotiate with, so the kitty keyboard protocol is
+// always unsupported here.
+func (s *simscreen) EnableEnhancedKeys(flags int) int {
+	return 0
+}
+
+// DisableEnhancedKeys implements Screen; a no-op on the simulator.
+func (s *simscreen) DisableEnhancedKeys() {}
