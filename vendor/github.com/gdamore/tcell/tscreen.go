@@ -1,4 +1,4 @@
-// Copyright 2017 The TCell Authors
+// Copyright 2019 The TCell Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use file except in compliance with the License.
@@ -26,7 +26,9 @@ import (
 	"golang.org/x/text/transform"
 
 	"github.com/gdamore/tcell/terminfo"
-	"github.com/gdamore/tcell/terminfo/dynamic"
+
+	// import the stock terminals
+	_ "github.com/gdamore/tcell/terminfo/base"
 )
 
 // NewTerminfoScreen returns a Screen that uses the stock TTY interface
@@ -40,7 +42,7 @@ import (
 func NewTerminfoScreen() (Screen, error) {
 	ti, e := terminfo.LookupTerminfo(os.Getenv("TERM"))
 	if e != nil {
-		ti, _, e = dynamic.LoadTerminfo(os.Getenv("TERM"))
+		ti, e = loadDynamicTerminfo(os.Getenv("TERM"))
 		if e != nil {
 			return nil, e
 		}
@@ -99,7 +101,6 @@ type tScreen struct {
 	cursorx   int
 	cursory   int
 	tiosp     *termiosPrivate
-	baud      int
 	wasbtn    bool
 	acs       map[rune]string
 	charset   string
@@ -288,6 +289,8 @@ func (t *tScreen) prepareKeys() {
 	t.prepareKeyMod(KeyDown, ModShift, ti.KeyShfDown)
 	t.prepareKeyMod(KeyHome, ModShift, ti.KeyShfHome)
 	t.prepareKeyMod(KeyEnd, ModShift, ti.KeyShfEnd)
+	t.prepareKeyMod(KeyPgUp, ModShift, ti.KeyShfPgUp)
+	t.prepareKeyMod(KeyPgDn, ModShift, ti.KeyShfPgDn)
 
 	t.prepareKeyMod(KeyRight, ModCtrl, ti.KeyCtrlRight)
 	t.prepareKeyMod(KeyLeft, ModCtrl, ti.KeyCtrlLeft)
@@ -588,6 +591,9 @@ func (t *tScreen) drawCell(x, y int) int {
 		if attrs&AttrDim != 0 {
 			t.TPuts(ti.Dim)
 		}
+		if attrs&AttrItalic != 0 {
+			t.TPuts(ti.Italic)
+		}
 		t.curstyle = style
 	}
 	// now emit runes - taking care to not overrun width with a
@@ -672,9 +678,9 @@ func (t *tScreen) writeString(s string) {
 
 func (t *tScreen) TPuts(s string) {
 	if t.buffering {
-		t.ti.TPuts(&t.buf, s, t.baud)
+		t.ti.TPuts(&t.buf, s)
 	} else {
-		t.ti.TPuts(t.out, s, t.baud)
+		t.ti.TPuts(t.out, s)
 	}
 }
 
