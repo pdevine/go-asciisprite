@@ -8,21 +8,23 @@ package termbox
 import (
 	"errors"
 	"io"
+	"os"
 )
 
 var errUnsupported = errors.New("termbox: platform not supported by the native backend")
 
 type ttyWriter struct{}
 
-func (ttyWriter) Write(p []byte) (int, error)  { return 0, errUnsupported }
-func (ttyWriter) Sync() error                  { return errUnsupported }
+func (ttyWriter) Write(p []byte) (int, error) { return 0, errUnsupported }
+func (ttyWriter) Sync() error                 { return errUnsupported }
 func (ttyWriter) WriteString(s string) (int, error) {
 	return 0, errUnsupported
 }
 
 type ttyState struct {
-	in  *osFileStub
-	out ttyWriter
+	in    *osFileStub
+	out   ttyWriter
+	winch chan os.Signal
 }
 
 type osFileStub struct{}
