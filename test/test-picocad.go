@@ -276,6 +276,25 @@ func (d *PicoCADDemo) Update() {
 	d.BlockCostumes[0] = &surf
 }
 
+// resolveModelPaths makes relative model paths work whether the demo is
+// run from test/ or test/test-picocad/ (or anywhere): each argument is
+// tried as given, then with ../ prepended, until a readable file wins.
+// Paths that remain unresolved are left alone so the loader reports its
+// own error naming what it tried.
+func resolveModelPaths(paths []string) []string {
+	out := make([]string, len(paths))
+	for i, p := range paths {
+		out[i] = p
+		for _, cand := range []string{p, "../" + p, "../../" + p} {
+			if _, err := os.Stat(cand); err == nil {
+				out[i] = cand
+				break
+			}
+		}
+	}
+	return out
+}
+
 func main() {
 	// XXX - Wait a bit until the terminal is properly initialized
 	time.Sleep(500 * time.Millisecond)
@@ -298,10 +317,11 @@ func main() {
 		}
 	}()
 
-	models := []string{"../testdata/pig.picocad2", "../testdata/pirate.picocad2"}
+	models := []string{"testdata/pig.picocad2", "testdata/pirate.picocad2"}
 	if len(os.Args) > 1 {
 		models = os.Args[1:]
 	}
+	models = resolveModelPaths(models)
 
 	spread := math.Min(float64(Width)/(float64(len(models))+1), 80)
 	for i, fn := range models {
