@@ -3,6 +3,7 @@ package termbox
 // Input layer: read goroutine, parser loop, event queue.
 
 import (
+	"io"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -30,8 +31,10 @@ func pollEvent() Event {
 func settle() { time.Sleep(50 * time.Millisecond) }
 
 var (
-	inputQuit  chan struct{}
-	inputDoneq chan struct{}
+	inputQuit   chan struct{}
+	inputDoneq  chan struct{}
+	resizeQuit  chan struct{}
+	resizeDoneq chan struct{}
 )
 
 // inputMain is the input goroutine: reads chunks, parses events, posts
@@ -49,6 +52,45 @@ func stopInput() {
 		close(inputQuit)
 		select {
 		case <-inputDoneq:
+		case <-time.After(200 * time.Millisecond):
+		}
+	}
+}
+
+// resizeMain translates SIGWINCH into EventResize.  The channel is
+// created by tty.start on unix; it is nil on platforms with native
+// resize events (Windows), in which case this goroutine waits on quit
+// only.
+func resizeMain() {
+	resizeQuit = make(chan struct{})
+	resizeDoneq = make(chan struct{})
+	defer close(resizeDoneq)
+	for {
+		select {
+		case <-tty.winch:
+			w, h, err := tty.size()
+			if err != nil {
+				continue
+			}
+			mu.Lock()
+			if inited && (w != back.width || h != back.height) {
+				front = newScreenBuf(w, h)
+				back = newScreenBuf(w, h)
+				io.WriteString(tty.out, "\x1b[2J")
+				post(Event{Type: EventResize, Width: w, Height: h})
+			}
+			mu.Unlock()
+		case <-resizeQuit:
+			return
+		}
+	}
+}
+
+func stopResize() {
+	if resizeQuit != nil {
+		close(resizeQuit)
+		select {
+		case <-resizeDoneq:
 		case <-time.After(200 * time.Millisecond):
 		}
 	}

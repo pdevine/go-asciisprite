@@ -73,6 +73,12 @@ func initLocked() error {
 	tty.out.WriteString(io_seq)
 	inited = true
 	go inputMain()
+	go resizeMain()
+	// tcell compatibility: consumers traditionally receive an initial
+	// EventResize carrying the current size, and apps (thisisfine) use
+	// it to seed layout.  Post after inited so resizeMain's suppressed
+	// first signal can't race it.
+	post(Event{Type: EventResize, Width: w, Height: h})
 	return nil
 }
 
@@ -97,9 +103,14 @@ func Close() {
 	tty.out.Sync()
 	enhanced = false
 	mu.Unlock()
+	// stopResize must run before tty.stop (which closes tty.winch and
+	// would wake the watcher into a nil-channel receive loop) but after
+	// mu is released (the watcher needs mu to observe inited == false).
+	stopResize()
 	// settle before restoring termios, so the terminal has processed the
 	// teardown bytes before input modes change underneath it
 	settle()
+
 	tty.stop()
 }
 
