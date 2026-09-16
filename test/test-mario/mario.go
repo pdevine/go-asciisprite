@@ -7,7 +7,6 @@ import (
 	"time"
 
 	sprite "github.com/pdevine/go-asciisprite"
-	//tm "github.com/gdamore/tcell/termbox"
 	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
@@ -327,10 +326,11 @@ func main() {
 	// XXX - Wait a bit until the terminal is properly initialized
 	time.Sleep(500 * time.Millisecond)
 
-	err := tm.Init()
+	flags, err := tm.InitEnhancedKeys()
 	if err != nil {
 		panic(err)
 	}
+	enhanced := flags != 0
 	defer tm.Close()
 
 	Width, Height = tm.Size()
@@ -351,20 +351,20 @@ func main() {
 	allBlocks = ParseLevel(level1, bg)
 	allSprites.Sprites = append(allSprites.Sprites, m)
 
+	// in enhanced mode, arrows are held: Mario keeps walking while the
+	// key is down and stops on release
+	walkLeft, walkRight := false, false
+
 mainloop:
 	for {
 		tm.Clear(tm.ColorDefault, bg)
 
 		select {
 		case ev := <-event_queue:
-			if ev.Type == tm.EventKey {
+			switch ev.Type {
+			case tm.EventKey, tm.EventKeyPress:
 				if ev.Key == tm.KeyEsc || ev.Ch == 'q' {
 					break mainloop
-				}
-				if ev.Key == tm.KeyArrowRight {
-					m.MoveRight()
-				} else if ev.Key == tm.KeyArrowLeft {
-					m.MoveLeft()
 				}
 				if ev.Ch == ' ' {
 					if m.State == Walking {
@@ -373,11 +373,36 @@ mainloop:
 						m.Walk(m.Direction)
 					}
 				}
-			} else if ev.Type == tm.EventResize {
+				if ev.Key == tm.KeyArrowRight {
+					if enhanced {
+						walkRight = true
+					} else {
+						m.MoveRight()
+					}
+				} else if ev.Key == tm.KeyArrowLeft {
+					if enhanced {
+						walkLeft = true
+					} else {
+						m.MoveLeft()
+					}
+				}
+			case tm.EventKeyRelease:
+				if ev.Key == tm.KeyArrowRight {
+					walkRight = false
+				} else if ev.Key == tm.KeyArrowLeft {
+					walkLeft = false
+				}
+			case tm.EventResize:
 				Width = ev.Width
 				Height = ev.Height
 			}
 		default:
+			if walkRight {
+				m.MoveRight()
+			}
+			if walkLeft {
+				m.MoveLeft()
+			}
 			allSprites.Update()
 			allSprites.Render()
 			time.Sleep(50 * time.Millisecond)

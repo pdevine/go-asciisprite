@@ -34,3 +34,12 @@ func (t *tScreen) getWinSize() (int, int, error) {
 func (t *tScreen) Beep() error {
 	return ErrNoScreen
 }
+
+// EnableEnhancedKeys implements Screen; stub platforms have no terminal
+// to negotiate the kitty keyboard protocol with.
+func (t *tScreen) EnableEnhancedKeys(flags int) int {
+	return 0
+}
+
+// DisableEnhancedKeys implements Screen; a no-op on stub platforms.
+func (t *tScreen) DisableEnhancedKeys() {}

@@ -3,7 +3,7 @@
 
 A simple golang sprite library for animating ASCII and Unicode art
 
-***What is a sprite?*** A sprite is a two-dimensional object which you can use in videogames and animations.
+***What is a sprite?*** A sprite is a two-dimensional object which you can use in video games and animations.
 
 ## Features
 
@@ -16,6 +16,10 @@ A simple golang sprite library for animating ASCII and Unicode art
 
  * Event system for triggering sprite events
 
+ * PicoCAD support for importing simple 3D objects
+
+ * Enhanced kitty keyboard support for key press and release events
+
 
 ## Usage
 
@@ -23,10 +27,10 @@ A simple golang sprite library for animating ASCII and Unicode art
 package main
 
 import (
-        "time"
+	"time"
 
-        sprite "github.com/pdevine/go-asciisprite"
-        tm "github.com/pdevine/go-asciisprite/termbox"
+	sprite "github.com/pdevine/go-asciisprite"
+	tm "github.com/pdevine/go-asciisprite/termbox"
 )
 
 var allSprites sprite.SpriteGroup
@@ -49,8 +53,8 @@ type Cow struct {
 
 func NewCow() *Cow {
 	cow := &Cow{BaseSprite: sprite.BaseSprite{
-		X: 5,
-		Y: 5,
+		X:       5,
+		Y:       5,
 		Visible: true},
 		VX: 1,
 		VY: 1,
@@ -65,16 +69,15 @@ func (cow *Cow) Update() {
 	cow.Y += cow.VY
 	if cow.X <= 0 {
 		cow.VX = 1
-	} else if cow.X >= (Width-cow.Width) {
+	} else if cow.X >= (Width - cow.Width) {
 		cow.VX = -1
 	}
 	if cow.Y <= 0 {
 		cow.VY = 1
-	} else if cow.Y >= (Height-cow.Height) {
+	} else if cow.Y >= (Height - cow.Height) {
 		cow.VY = -1
 	}
 }
-
 
 func main() {
 	err := tm.Init()

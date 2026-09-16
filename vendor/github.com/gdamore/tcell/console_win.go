@@ -1168,3 +1168,12 @@ func (s *cScreen) Beep() error {
 	}
 	return nil
 }
+
+// EnableEnhancedKeys implements Screen; the Windows console reads native
+// console input events and does not use the kitty keyboard protocol.
+func (s *cScreen) EnableEnhancedKeys(flags int) int {
+	return 0
+}
+
+// DisableEnhancedKeys implements Screen; a no-op on the Windows console.
+func (s *cScreen) DisableEnhancedKeys() {}

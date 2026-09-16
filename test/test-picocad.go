@@ -18,6 +18,11 @@ var Height int
 var rotX, rotY float64
 // dist is the camera distance from the scene centre (adjustable with +/-).
 var dist float64 = 120
+// enhanced is true when the terminal negotiated kitty protocol keys.
+var enhanced bool
+// holdLeft/holdRight/holdUp/holdDown track held arrows in enhanced mode
+// so rotation continues while a key is down and stops on release.
+var holdLeft, holdRight, holdUp, holdDown bool
 
 type PicoCADDemo struct {
 	sprite.BaseSprite
@@ -271,14 +276,34 @@ func (d *PicoCADDemo) Update() {
 	d.BlockCostumes[0] = &surf
 }
 
+// resolveModelPaths makes relative model paths work whether the demo is
+// run from test/ or test/test-picocad/ (or anywhere): each argument is
+// tried as given, then with ../ prepended, until a readable file wins.
+// Paths that remain unresolved are left alone so the loader reports its
+// own error naming what it tried.
+func resolveModelPaths(paths []string) []string {
+	out := make([]string, len(paths))
+	for i, p := range paths {
+		out[i] = p
+		for _, cand := range []string{p, "../" + p, "../../" + p} {
+			if _, err := os.Stat(cand); err == nil {
+				out[i] = cand
+				break
+			}
+		}
+	}
+	return out
+}
+
 func main() {
 	// XXX - Wait a bit until the terminal is properly initialized
 	time.Sleep(500 * time.Millisecond)
 
-	err := tm.Init()
+	flags, err := tm.InitEnhancedKeys()
 	if err != nil {
 		panic(err)
 	}
+	enhanced = flags != 0
 	defer tm.Close()
 
 	w, h := tm.Size()
@@ -292,10 +317,11 @@ func main() {
 		}
 	}()
 
-	models := []string{"../testdata/pig.picocad2", "../testdata/pirate.picocad2"}
+	models := []string{"testdata/pig.picocad2", "testdata/pirate.picocad2"}
 	if len(os.Args) > 1 {
 		models = os.Args[1:]
 	}
+	models = resolveModelPaths(models)
 
 	spread := math.Min(float64(Width)/(float64(len(models))+1), 80)
 	for i, fn := range models {
@@ -314,18 +340,23 @@ mainloop:
 
 		select {
 		case ev := <-event_queue:
-			if ev.Type == tm.EventKey {
+			if ev.Type == tm.EventKey || ev.Type == tm.EventKeyPress {
 				if ev.Key == tm.KeyEsc {
 					break mainloop
 				}
-				// arrows rotate the scene manually
+				// arrows rotate: single step (legacy) or begin holding
+				// (enhanced)
 				if ev.Key == tm.KeyArrowLeft {
+					holdLeft = enhanced
 					rotY -= 0.1
 				} else if ev.Key == tm.KeyArrowRight {
+					holdRight = enhanced
 					rotY += 0.1
 				} else if ev.Key == tm.KeyArrowUp {
+					holdUp = enhanced
 					rotX -= 0.1
 				} else if ev.Key == tm.KeyArrowDown {
+					holdDown = enhanced
 					rotX += 0.1
 				}
 				// + / - zoom the camera in and out
@@ -334,12 +365,36 @@ mainloop:
 				} else if ev.Ch == '-' || ev.Ch == '_' {
 					dist = math.Min(dist+15, 500)
 				}
+			} else if ev.Type == tm.EventKeyRelease {
+				switch ev.Key {
+				case tm.KeyArrowLeft:
+					holdLeft = false
+				case tm.KeyArrowRight:
+					holdRight = false
+				case tm.KeyArrowUp:
+					holdUp = false
+				case tm.KeyArrowDown:
+					holdDown = false
+				}
 			} else if ev.Type == tm.EventResize {
 				Width = ev.Width * 2
 				Height = ev.Height * 2
 				allSprites.Resize(Width, Height)
 			}
 		default:
+			// in enhanced mode, rotate continuously while an arrow is held
+			if holdLeft {
+				rotY -= 0.05
+			}
+			if holdRight {
+				rotY += 0.05
+			}
+			if holdUp {
+				rotX -= 0.05
+			}
+			if holdDown {
+				rotX += 0.05
+			}
 			allSprites.Update()
 			allSprites.Render()
 			time.Sleep(50 * time.Millisecond)
